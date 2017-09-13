@@ -1,9 +1,10 @@
 /**
- * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2016 by Appcelerator, Inc. All Rights Reserved.
- * Licensed under the terms of the Apache Public License
- * Please see the LICENSE included with this distribution for details.
+ * Ti.Identity
+ *
+ * Created by Hans Knoechel
+ * Copyright (c) 2017-present by Axway. All rights reserved.
  */
+
 #import "APSKeychainWrapper.h"
 #import "TiProxy.h"
 

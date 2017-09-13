@@ -1,8 +1,8 @@
 /**
- * titanium-identity
+ * Ti.Identity
  *
  * Created by Hans Knoechel
- * Copyright (c) 2017 Your Company. All rights reserved.
+ * Copyright (c) 2017-present by Axway. All rights reserved.
  */
 
 #import "TiIdentityModule.h"
@@ -57,6 +57,16 @@
 {
   ENSURE_TYPE(value, NSNumber);
   _authPolicy = [TiUtils intValue:value def:LAPolicyDeviceOwnerAuthenticationWithBiometrics];
+}
+
+- (NSNumber *)biometryType
+{
+  if (@available(iOS 11.0, *)) {
+    return NUMINT(LABiometryTypeTouchID);
+  } else {
+    NSLog(@"[ERROR] Ti.Identity.biometryType is only available on iOS 11 and later!");
+    return NUMINT(-1);
+  }
 }
 
 - (id)authenticationPolicy
@@ -122,7 +132,6 @@
     }
   }
 
-#if IS_XCODE_8
   // iOS 10: Expose support for localized titles
   if ([TiUtils isIOS10OrGreater]) {
     if (fallbackTitle) {
@@ -133,7 +142,6 @@
       [[self authContext] setLocalizedCancelTitle:[TiUtils stringValue:cancelTitle]];
     }
   }
-#endif
 
   // Display the dialog if the security policy allows it (= device has Touch ID enabled)
   if ([[self authContext] canEvaluatePolicy:_authPolicy error:&authError]) {
@@ -231,6 +239,17 @@ MAKE_SYSTEM_PROP(ERROR_SYSTEM_CANCEL, LAErrorSystemCancel);
 MAKE_SYSTEM_PROP(ERROR_USER_FALLBACK, LAErrorAuthenticationFailed);
 MAKE_SYSTEM_PROP(ERROR_USER_CANCEL, LAErrorUserCancel);
 MAKE_SYSTEM_PROP(ERROR_AUTHENTICATION_FAILED, LAErrorAuthenticationFailed);
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_11_0
+MAKE_SYSTEM_PROP(ERROR_BIOMETRY_NOT_AVAILABLE, LAErrorBiometryNotAvailable);
+MAKE_SYSTEM_PROP(ERROR_BIOMETRY_NOT_ENROLLED, LAErrorBiometryNotEnrolled);
+MAKE_SYSTEM_PROP(ERROR_BIOMETRY_LOCKOUT, LAErrorBiometryLockout);
+#endif
+
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_11_0
+MAKE_SYSTEM_PROP(BIOMETRY_TYPE_NONE, LABiometryNone);
+MAKE_SYSTEM_PROP(BIOMETRY_TYPE_TOUCH_ID, LABiometryTypeTouchID);
+MAKE_SYSTEM_PROP(BIOMETRY_TYPE_FACE_ID, LABiometryTypeFaceID);
+#endif
 
 MAKE_SYSTEM_STR(ACCESSIBLE_WHEN_UNLOCKED, kSecAttrAccessibleWhenUnlocked);
 MAKE_SYSTEM_STR(ACCESSIBLE_AFTER_FIRST_UNLOCK, kSecAttrAccessibleAfterFirstUnlock);

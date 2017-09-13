@@ -53,10 +53,9 @@ description: |
     new authentication is triggered. On iOS 9 and later, this can also be called to cancel a current 
     evaluation of an auth-context, e.g. to hide the auth-dialoag.
         
-    ### Native Keychain Integration (iOS-only)
+    ### Native Keychain Integration
     
-    For more infos regarding the keychain integration, check the <Modules.TiIdentity.KeychainItem> 
-    documentation.
+    For more infos regarding the keychain integration, check the "KeychainItem" "documentation.
 
     ### Sample Application
 
@@ -108,21 +107,35 @@ methods:
         type: DeviceCanAuthenticateResult
 
   - name: isSupported
-    summary: Determines if the current device supports Touch ID.
+    summary: Determines if the current device supports Touch ID or Face ID.
     returns:
         type: Boolean
 properties:    
   - name: authenticationPolicy
-    summary: Sets the global authentication policy used in this Touch ID context.
+    summary: Sets the global authentication policy used in this Touch ID / Face ID context.
     description: |
         You should set this property before checking the availability or 
         starting the authentication. By default, `AUTHENTICATION_POLICY_BIOMETRICS`
-        will be used to authenticate using the Touch ID sensor only. Using the
+        will be used to authenticate using the Touch ID / Face ID sensor only. Using the
         `AUTHENTICATION_POLICY_PASSCODE` constant will still try to authenticate
-        with Touch ID first and use the passcode as the fallback.
+        with Touch ID / Face ID first and use the passcode as the fallback.
     platforms: [iphone, ipad]
     since: "6.1.0"
     type: Number
+    constants: [Modules.TiIdentity.AUTHENTICATION_POLICY_*]
+    default: Modules.TiIdentity.AUTHENTICATION_POLICY_BIOMETRICS
+    
+  - name: biometryType
+    summary: Indicates the type of the biometry supported by the device.
+    description: |
+        This property is set only when <Modules.TiIdentity.isSupported> succeeds for a biometric policy.
+        The default value is <Modules.TiIdentity.BIOMETRY_NONE>.
+    platforms: [iphone, ipad]
+    since: "6.3.0"
+    type: Number
+    osver: {ios: {min: "11.0"}}
+    permission: read-only
+
     constants: [Modules.TiIdentity.AUTHENTICATION_POLICY_*]
     default: Modules.TiIdentity.AUTHENTICATION_POLICY_BIOMETRICS
 
@@ -166,6 +179,36 @@ properties:
     permission: read-only
     platforms: [iphone, ipad]
     since: "6.1.0"
+
+  - name: BIOMETRY_TYPE_NONE
+    summary: The device does not support biometry.
+    description: |
+        Used as a return-value for <Modules.TiIdentity.biometryType>.
+    type: Number
+    permission: read-only
+    platforms: [iphone, ipad]
+    osver: {ios: {min: "11.0"}}
+    since: "6.3.0"
+
+  - name: BIOMETRY_TYPE_FACE_ID
+    summary: he device supports Face ID.
+    description: |
+        Used as a return-value for <Modules.TiIdentity.biometryType>.
+    type: Number
+    permission: read-only
+    platforms: [iphone, ipad]
+    osver: {ios: {min: "11.0"}}
+    since: "6.3.0"
+
+  - name: BIOMETRY_TYPE_TOUCH_ID
+    summary: he device supports Touch ID.
+    description: |
+        Used as a return-value for <Modules.TiIdentity.biometryType>.
+    type: Number
+    permission: read-only
+    platforms: [iphone, ipad]
+    osver: {ios: {min: "11.0"}}
+    since: "6.3.0"
 
   - name: ERROR_AUTHENTICATION_FAILED
     summary: Constant indicating that the authentication was not successful.
@@ -227,6 +270,32 @@ properties:
     summary: Constant indicating that Touch ID has locked out.
     type: Number
     permission: read-only
+    platforms: [iphone, ipad]
+
+  - name: ERROR_BIOMETRY_LOCKOUT
+    summary: |
+        Authentication was not successful, because there were too many failed biometry 
+        attempts and biometry is now locked. Passcode is required to unlock biometry, 
+        e.g. evaluating <Modules.TiIdentity.authenticate> will ask for passcode as a prerequisite.
+    since: "6.3.0"
+    type: Number
+    osver: {ios: {min: "11.0"}}
+    permission: read-only
+ 
+  - name: ERROR_BIOMETRY_NOT_AVAILABLE
+    summary: Authentication could not start, because biometry is not available on the device.
+    since: "6.3.0"
+    type: Number
+    osver: {ios: {min: "11.0"}}
+    permission: read-only
+
+  - name: ERROR_BIOMETRY_NOT_ENROLLED
+    summary: Authentication could not start, because biometry has no enrolled identities.
+    since: "6.3.0"
+    type: Number
+    osver: {ios: {min: "11.0"}}
+    permission: read-only
+
     platforms: [iphone, ipad]
     
   - name: ACCESSIBLE_WHEN_UNLOCKED
