@@ -68,7 +68,7 @@ var btnExists = Ti.UI.createButton({
 
 btnExists.addEventListener('click', function() {
     keychainItem.fetchExistence(function(e) {
-        alert("Exists? " + e.exists);
+        alert('Exists? ' + e.exists);
     });
 });
 

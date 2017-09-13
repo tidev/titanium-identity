@@ -14,6 +14,8 @@ var btn = Ti.UI.createButton({
 
 // You can set the authentication policy on iOS (biometric or passcode)
 if (Ti.Platform.name === 'iPhone OS') {
+	// Using this constant, iOS will automatically offer to authenticate with Face ID or Touch ID
+	// when calling "authenticate" below.
 	TiIdentity.setAuthenticationPolicy(TiIdentity.AUTHENTICATION_POLICY_BIOMETRICS); // or: AUTHENTICATION_POLICY_PASSCODE
 }
 
@@ -23,15 +25,15 @@ win.open();
 btn.addEventListener('click', function(){
 
 	if(!TiIdentity.isSupported()) {
-		alert("Touch ID is not supported on this device!");
+		alert('Touch ID is not supported on this device!');
 		return;
 	}
 	
 	TiIdentity.authenticate({
 		reason: 'We need your fingerprint to continue.',
 		allowableReuseDuration: 30, // iOS 9+, optional, in seconds, only used for lockscreen-unlocks
-		fallbackTitle: "Use different auth method?", // iOS 10+, optional
-		cancelTitle: "Get me outta here!", // iOS 10+, optional
+		fallbackTitle: 'Use different auth method?', // iOS 10+, optional
+		cancelTitle: 'Get me outta here!', // iOS 10+, optional
 		callback: function(e) {
 			if (!e.success) {
 				alert('Error! Message: ' + e.error + '\nCode: ' + e.code);

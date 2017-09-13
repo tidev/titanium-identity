@@ -57,13 +57,13 @@ btnSave.addEventListener('click', function() {
 });
 
 var btnExists = Ti.UI.createButton({
-    title: "Exists?",
+    title: 'Exists?',
     top: 40
 });
 
-btnExists.addEventListener("click", function() {
+btnExists.addEventListener('click', function() {
     keychainItem.fetchExistence(function(e) {
-        alert("Exists? " + e.exists);
+        alert('Exists? ' + e.exists);
     });
 });
 
