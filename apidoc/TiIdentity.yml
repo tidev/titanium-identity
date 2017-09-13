@@ -223,13 +223,21 @@ properties:
     platforms: [iphone, ipad]
     
   - name: ERROR_TOUCH_ID_NOT_AVAILABLE
-    summary: Constant indicating that Touch ID is not available on the device.
+    summary: |
+        Constant indicating that Touch ID is not available on the device.
+        Note: This constant has been deprecated for iOS 11 and later. Use
+        <Modules.TiIdentity.ERROR_BIOMETRY_NOT_AVAILABLE> for apps targeting iOS 11
+        and later.
     type: Number
     permission: read-only
     platforms: [iphone, ipad]
 
   - name: ERROR_TOUCH_ID_NOT_ENROLLED
-    summary: Constant indicating that Touch ID does not have any enrolled fingerprints.
+    summary: |
+        Constant indicating that Touch ID does not have any enrolled fingerprints.
+        Note: This constant has been deprecated for iOS 11 and later. Use
+        <Modules.TiIdentity.ERROR_TOUCH_ID_NOT_ENROLLED for apps targeting iOS 11
+        and later.
     type: Number
     permission: read-only
     platforms: [iphone, ipad]
@@ -267,7 +275,11 @@ properties:
     platforms: [iphone, ipad]
 
   - name: ERROR_TOUCH_ID_LOCKOUT
-    summary: Constant indicating that Touch ID has locked out.
+    summary: 
+         Constant indicating that Touch ID has locked out.
+         Note: This constant has been deprecated for iOS 11 and later. Use
+         <Modules.TiIdentity.ERROR_BIOMETRY_LOCKOUT> for apps targeting iOS 11
+         and later.
     type: Number
     permission: read-only
     platforms: [iphone, ipad]
