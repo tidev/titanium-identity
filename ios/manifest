@@ -1,0 +1,18 @@
+#
+# this is your module manifest and used by Titanium
+# during compilation, packaging, distribution, etc.
+#
+version: 1.0.0
+apiversion: 2
+architectures: armv7 arm64 i386 x86_64
+description: titanium-identity
+author: Hans Knoechel
+license: Specify your license
+copyright: Copyright (c) 2017 by Your Company
+
+# these should not be edited
+name: titanium-identity
+moduleid: ti.identity
+guid: ae6ffc93-6e6e-4251-8373-b0cb263a1662
+platform: iphone
+minsdk: 6.2.0.v20170906064110
