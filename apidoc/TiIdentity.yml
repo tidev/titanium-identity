@@ -135,9 +135,8 @@ properties:
     type: Number
     osver: {ios: {min: "11.0"}}
     permission: read-only
-
-    constants: [Modules.TiIdentity.AUTHENTICATION_POLICY_*]
-    default: Modules.TiIdentity.AUTHENTICATION_POLICY_BIOMETRICS
+    constants: [Modules.TiIdentity.BIOMETRY_*]
+    default: Modules.TiIdentity.BIOMETRY_NONE
 
   - name: AUTHENTICATION_POLICY_PASSCODE
     summary: Device owner was authenticated by Touch ID or device passcode.
