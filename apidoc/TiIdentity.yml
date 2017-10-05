@@ -274,7 +274,7 @@ properties:
     platforms: [iphone, ipad]
 
   - name: ERROR_TOUCH_ID_LOCKOUT
-    summary: 
+    summary: |
          Constant indicating that Touch ID has locked out.
          Note: This constant has been deprecated for iOS 11 and later. Use
          <Modules.TiIdentity.ERROR_BIOMETRY_LOCKOUT> for apps targeting iOS 11
