@@ -45,16 +45,16 @@ description: |
                 Ti.API.info(e);
             }
         });
-        
+
     ### Lifetime Notes (iOS-only)
-    
+
     The current context will, once evaluated, be used until it's instance gets released or invalidated.
     You can you use the <Modules.TiIdentity.invalidate> method to force the user to be prompted every time a
-    new authentication is triggered. On iOS 9 and later, this can also be called to cancel a current 
+    new authentication is triggered. On iOS 9 and later, this can also be called to cancel a current
     evaluation of an auth-context, e.g. to hide the auth-dialoag.
-        
+
     ### Native Keychain Integration
-    
+
     For more infos regarding the keychain integration, check the "KeychainItem" "documentation.
 
     ### Sample Application
@@ -80,26 +80,26 @@ methods:
   - name: invalidate
     summary: Invalidates the current Touch ID dialog.
     description: |
-        The context is invalidated automatically when it is (auto)released. 
-        
+        The context is invalidated automatically when it is (auto)released.
+
         This method allows invalidating it manually while it is still in scope.
         Invalidation terminates any existing policy evaluation and the respective call will
         fail with <Modules.TiIdentity.ERROR_APP_CANCELLED>. After the context has been invalidated, it can not be
         used for policy evaluation and an attempt to do so will fail with <Modules.TiIdentity.ERROR_INVALID_CONTEXT>.
-        
+
         See the "Lifetime Notes (iOS-only)" paragraph in the module paragraph for more infos.
-    
+
     platforms: [iphone, ipad, android]
     since: "6.1.0"
 
   - name: deviceCanAuthenticate
     summary: Checks to see if device is configured for Touch ID authentication.
     description: |
-        Example: 
+        Example:
             var TiIdentity = require("ti.identity");
             var result = TiIdentity.deviceCanAuthenticate();
             if (!result.canAuthenticate) {
-                alert('Message: ' + result.error + '\nCode: ' + result.code);  
+                alert('Message: ' + result.error + '\nCode: ' + result.code);
             } else {
                 alert('Device can authenticate');
             }
@@ -110,11 +110,11 @@ methods:
     summary: Determines if the current device supports Touch ID or Face ID.
     returns:
         type: Boolean
-properties:    
+properties:
   - name: authenticationPolicy
     summary: Sets the global authentication policy used in this Touch ID / Face ID context.
     description: |
-        You should set this property before checking the availability or 
+        You should set this property before checking the availability or
         starting the authentication. By default, `AUTHENTICATION_POLICY_BIOMETRICS`
         will be used to authenticate using the Touch ID / Face ID sensor only. Using the
         `AUTHENTICATION_POLICY_PASSCODE` constant will still try to authenticate
@@ -124,7 +124,7 @@ properties:
     type: Number
     constants: [Modules.TiIdentity.AUTHENTICATION_POLICY_*]
     default: Modules.TiIdentity.AUTHENTICATION_POLICY_BIOMETRICS
-    
+
   - name: biometryType
     summary: Indicates the type of the biometry supported by the device.
     description: |
@@ -141,38 +141,38 @@ properties:
   - name: AUTHENTICATION_POLICY_PASSCODE
     summary: Device owner was authenticated by Touch ID or device passcode.
     description: |
-        Touch ID or passcode authentication is required. If Touch ID is available, 
-        enrolled and not locked out, user is asked for it first, otherwise they are 
-        asked to enter device passcode. If passcode is not enabled, policy evaluation 
+        Touch ID or passcode authentication is required. If Touch ID is available,
+        enrolled and not locked out, user is asked for it first, otherwise they are
+        asked to enter device passcode. If passcode is not enabled, policy evaluation
         will fail.
 
-        Touch ID authentication dialog behaves similarly as the one used by 
-        `AUTHENTICATION_POLICY_BIOMETRICS`. However, instead of "Enter Password" 
-        button there is "Enter Passcode" button which, when tapped, switches the 
+        Touch ID authentication dialog behaves similarly as the one used by
+        `AUTHENTICATION_POLICY_BIOMETRICS`. However, instead of "Enter Password"
+        button there is "Enter Passcode" button which, when tapped, switches the
         authentication method and allows users to enter device passcode.
 
-        Passcode authentication will get locked after 6 unsuccessful attempts with 
+        Passcode authentication will get locked after 6 unsuccessful attempts with
         progressively increased backoff delay.
     type: Number
     permission: read-only
     platforms: [iphone, ipad]
     since: "6.1.0"
-    
+
   - name: AUTHENTICATION_POLICY_BIOMETRICS
     summary: Device owner was authenticated using a biometric method (Touch ID).
     description: |
-        Touch ID authentication is required. If Touch ID is not available or not 
-        enrolled, policy evaluation will fail. If Touch ID is locked out, passcode 
+        Touch ID authentication is required. If Touch ID is not available or not
+        enrolled, policy evaluation will fail. If Touch ID is locked out, passcode
         is required as the first step to unlock the Touch ID.
 
-        Touch ID authentication dialog contains a cancel button with default title 
-        "Cancel" which can be customized using `cancelTitle` property and a fallback 
-        button with default title "Enter Password" which can be customized using 
-        `fallbackTitle` property. Fallback button is initially hidden and shows up 
-        after first unsuccessful Touch ID attempt. Tapping cancel button or fallback 
+        Touch ID authentication dialog contains a cancel button with default title
+        "Cancel" which can be customized using `cancelTitle` property and a fallback
+        button with default title "Enter Password" which can be customized using
+        `fallbackTitle` property. Fallback button is initially hidden and shows up
+        after first unsuccessful Touch ID attempt. Tapping cancel button or fallback
         button causes evaluatePolicy call to fail, returning a distinct error code.
 
-        Biometric authentication will get locked after 5 unsuccessful attempts. 
+        Biometric authentication will get locked after 5 unsuccessful attempts.
         After that, users have to unlock it by entering passcode.
     type: Number
     permission: read-only
@@ -220,7 +220,7 @@ properties:
     type: Number
     permission: read-only
     platforms: [iphone, ipad]
-    
+
   - name: ERROR_TOUCH_ID_NOT_AVAILABLE
     summary: |
         Constant indicating that Touch ID is not available on the device.
@@ -285,14 +285,14 @@ properties:
 
   - name: ERROR_BIOMETRY_LOCKOUT
     summary: |
-        Authentication was not successful, because there were too many failed biometry 
-        attempts and biometry is now locked. Passcode is required to unlock biometry, 
+        Authentication was not successful, because there were too many failed biometry
+        attempts and biometry is now locked. Passcode is required to unlock biometry,
         e.g. evaluating <Modules.TiIdentity.authenticate> will ask for passcode as a prerequisite.
     since: "6.3.0"
     type: Number
     osver: {ios: {min: "11.0"}}
     permission: read-only
- 
+
   - name: ERROR_BIOMETRY_NOT_AVAILABLE
     summary: Authentication could not start, because biometry is not available on the device.
     since: "6.3.0"
@@ -308,135 +308,135 @@ properties:
     permission: read-only
 
     platforms: [iphone, ipad]
-    
+
   - name: ACCESSIBLE_WHEN_UNLOCKED
     summary: |
-        Item data can only be accessed while the device is unlocked. This is 
-        recommended for items that only need be accesible while the application 
-        is in the foreground.  Items with this attribute will migrate to a new 
+        Item data can only be accessed while the device is unlocked. This is
+        recommended for items that only need be accesible while the application
+        is in the foreground.  Items with this attribute will migrate to a new
         device when using encrypted backups.
     type: Number
     permission: read-only
     platforms: [iphone, ipad]
     since: "6.1.0"
-    
+
   - name: ACCESSIBLE_AFTER_FIRST_UNLOCK
     summary: |
-        Item data can only be accessed once the device has been unlocked after 
-        a restart.  This is recommended for items that need to be accesible by 
-        background applications. Items with this attribute will migrate to a new 
+        Item data can only be accessed once the device has been unlocked after
+        a restart.  This is recommended for items that need to be accesible by
+        background applications. Items with this attribute will migrate to a new
         device when using encrypted backups.
     type: Number
     permission: read-only
     platforms: [iphone, ipad]
     since: "6.1.0"
-    
+
   - name: ACCESSIBLE_ALWAYS
     summary: |
-        Item data can always be accessed regardless of the lock state of the device.  
-        This is not recommended for anything except system use. Items with this 
+        Item data can always be accessed regardless of the lock state of the device.
+        This is not recommended for anything except system use. Items with this
         attribute will migrate to a new device when using encrypted backups.
     type: Number
     permission: read-only
     platforms: [iphone, ipad, android]
     since: "6.1.0"
-    
+
   - name: ACCESSIBLE_WHEN_PASSCODE_SET_THIS_DEVICE_ONLY
     summary: |
-         Item data can only be accessed while the device is unlocked. This class 
-         is only available if a passcode is set on the device. This is recommended 
+         Item data can only be accessed while the device is unlocked. This class
+         is only available if a passcode is set on the device. This is recommended
          for items that only need to be accessible while the application is in the
-         foreground. Items with this attribute will never migrate to a new 
-         device, so after a backup is restored to a new device, these items 
-         will be missing. No items can be stored in this class on devices 
-         without a passcode. Disabling the device passcode will cause all 
+         foreground. Items with this attribute will never migrate to a new
+         device, so after a backup is restored to a new device, these items
+         will be missing. No items can be stored in this class on devices
+         without a passcode. Disabling the device passcode will cause all
          items in this class to be deleted.
     type: Number
     permission: read-only
     platforms: [iphone, ipad, android]
     since: "6.1.0"
-    
+
   - name: ACCESSIBLE_WHEN_UNLOCKED_THIS_DEVICE_ONLY
     summary: |
-        Item data can only be accessed while the device is unlocked. This is 
-        recommended for items that only need be accesible while the application 
-        is in the foreground. Items with this attribute will never migrate to a 
-        new device, so after a backup is restored to a new device, these items 
+        Item data can only be accessed while the device is unlocked. This is
+        recommended for items that only need be accesible while the application
+        is in the foreground. Items with this attribute will never migrate to a
+        new device, so after a backup is restored to a new device, these items
         will be missing.
     type: Number
     permission: read-only
     platforms: [iphone, ipad]
     since: "6.1.0"
-    
+
   - name: ACCESSIBLE_AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY
     summary: |
-        Item data can only be accessed once the device has been unlocked after a 
-        restart. This is recommended for items that need to be accessible by 
-        background applications. Items with this attribute will never migrate to 
-        a new device, so after a backup is restored to a new device these items 
+        Item data can only be accessed once the device has been unlocked after a
+        restart. This is recommended for items that need to be accessible by
+        background applications. Items with this attribute will never migrate to
+        a new device, so after a backup is restored to a new device these items
         will be missing.
     type: Number
     permission: read-only
     platforms: [iphone, ipad]
     since: "6.1.0"
-    
+
   - name: ACCESSIBLE_ALWAYS_THIS_DEVICE_ONLY
     summary: |
-        Item data can always be accessed regardless of the lock state of the device.  
-        This option is not recommended for anything except system use. Items with 
+        Item data can always be accessed regardless of the lock state of the device.
+        This option is not recommended for anything except system use. Items with
         this attribute will never migrate to a new device, so after a backup is
         restored to a new device, these items will be missing.
     type: Number
     permission: read-only
     platforms: [iphone, ipad, android]
     since: "6.1.0"
-    
+
   - name: ACCESS_CONTROL_USER_PRESENCE
     summary: |
-        User presence policy using Touch ID or Passcode. Touch ID does not have 
-        to be available or enrolled. Item is still accessible by Touch ID even 
+        User presence policy using Touch ID or Passcode. Touch ID does not have
+        to be available or enrolled. Item is still accessible by Touch ID even
         if fingers are added or removed.
     type: Number
     permission: read-only
     platforms: [iphone, ipad, android]
     since: "6.1.0"
-    
+
   - name: ACCESS_CONTROL_TOUCH_ID_ANY
     summary: |
-        Constraint - Touch ID (any finger). Touch ID must be available and at least 
-        one finger must be enrolled. Item is still accessible by Touch ID even if 
+        Constraint - Touch ID (any finger). Touch ID must be available and at least
+        one finger must be enrolled. Item is still accessible by Touch ID even if
         fingers are added or removed.
     type: Number
     permission: read-only
     platforms: [iphone, ipad, android]
     since: "6.1.0"
-    
+
   - name: ACCESS_CONTROL_TOUCH_ID_CURRENT_SET
     summary: |
-        Constraint - Touch ID from the set of currently enrolled fingers. Touch ID 
-        must be available and at least one finger must be enrolled. When fingers 
+        Constraint - Touch ID from the set of currently enrolled fingers. Touch ID
+        must be available and at least one finger must be enrolled. When fingers
         are added or removed, the item is invalidated.
     type: Number
     permission: read-only
     platforms: [iphone, ipad, android]
     since: "6.1.0"
-    
+
   - name: ACCESS_CONTROL_DEVICE_PASSCODE
     summary: Constraint - Device passcode.
     type: Number
     permission: read-only
     platforms: [iphone, ipad, android]
     since: "6.1.0"
-    
+
   - name: ACCESS_CONTROL_OR
     summary: |
-        Constraint logic operation - When using more than one constraint, at least 
+        Constraint logic operation - When using more than one constraint, at least
         one of them must be satisfied.
     type: Number
     permission: read-only
     platforms: [iphone, ipad]
     since: "6.1.0"
-    
+
   - name: ACCESS_CONTROL_AND
     summary: |
         Constraint logic operation - When using more than one constraint, all must
@@ -445,17 +445,17 @@ properties:
     permission: read-only
     platforms: [iphone, ipad]
     since: "6.1.0"
-    
+
   - name: ACCESS_CONTROL_PRIVATE_KEY_USAGE
     summary: Create access control for private key operations (i.e. sign operation).
     type: Number
     permission: read-only
     platforms: [iphone, ipad]
     since: "6.1.0"
-    
+
   - name: ACCESS_CONTROL_APPLICATION_PASSWORD
     summary: |
-        Security: Application provided password for data encryption key generation. 
+        Security: Application provided password for data encryption key generation.
         This is not a constraint but additional item encryption mechanism.
     type: Number
     permission: read-only
@@ -475,86 +475,86 @@ properties:
         Message displayed in the authentication dialog describing why the
         application is requesting authentication.
     type: String
-        
+
   - name: allowableReuseDuration
     summary: |
         Note: This property is iOS only!
-        
-        The time interval (in seconds) for accepting a successful Touch ID device 
-        unlock (on the lock screen) from the past.  If the device  was successfully 
-        unlocked by Touch ID within this time interval, then Touch ID authentication 
-        on this context will succeed automatically and the reply block will be 
+
+        The time interval (in seconds) for accepting a successful Touch ID device
+        unlock (on the lock screen) from the past.  If the device  was successfully
+        unlocked by Touch ID within this time interval, then Touch ID authentication
+        on this context will succeed automatically and the reply block will be
         called without prompting user for Touch ID.
 
         The default value is 0, meaning that no previous TouchID unlock can be reused.
 
-        This property is meant only for reusing Touch ID matches from the device 
-        lock screen. It does not allow reusing previous Touch ID matches in 
+        This property is meant only for reusing Touch ID matches from the device
+        lock screen. It does not allow reusing previous Touch ID matches in
         application or between applications.
 
-        The maximum supported interval is 5 minutes and setting the value beyond 
-        5 minutes does not increase the accepted interval.    
+        The maximum supported interval is 5 minutes and setting the value beyond
+        5 minutes does not increase the accepted interval.
     type: Number
     since: "6.1.0"
     osver: {ios: {min: "9.0"}}
-    
+
   - name: fallbackTitle
     summary: |
         Note: This property is iOS only!
 
-        Allows fallback button title customization. A default localized title 
-        "Enter Password" is used when this property is left nil. If set to empty 
+        Allows fallback button title customization. A default localized title
+        "Enter Password" is used when this property is left nil. If set to empty
         string, the button will be hidden.
     type: String
     since: "6.1.0"
     osver: {ios: {min: "10.0"}}
-    
+
   - name: cancelTitle
     summary: |
-         Note: This property is iOS only!
+        Note: This property is iOS only!
 
-        Allows cancel button title customization. A default localized title "Cancel" 
+        Allows cancel button title customization. A default localized title "Cancel"
         is used when this property is not defined or is set to empty string.
     type: String
     since: "6.1.0"
     osver: {ios: {min: "10.0"}}
-     
+
   - name: keepAlive
     summary: |
         Note: This property is iOS only!
 
         Determines whether the auth-context should be kept alive after authorizing
         with the TouchID-API and can be used to automatically terminate an auth-context
-        after authorizing. 
-        
-        Please note that calling `invalidate` will not be possible unless you 
-        have a valid auth-context, so you would decide whether to use `invalidate` 
-        to invalidate the context and release the auth-instance or use the `keepAlive` 
+        after authorizing.
+
+        Please note that calling `invalidate` will not be possible unless you
+        have a valid auth-context, so you would decide whether to use `invalidate`
+        to invalidate the context and release the auth-instance or use the `keepAlive`
         property inside `authenticate` to only terminate the context.
-        
+
         Terminated contexts cannot be recovered and will be recreated with a new auth-context
         once `authenticate` is called again.
     type: Boolean
     since: "7.0.0"
-  
+
   - name: callback
     optional: false
     summary: |
-        Callback function executed after the authentication completes. 
+        Callback function executed after the authentication completes.
         The callback function is passed a dictionary with three properties:
 
           * `success` (Boolean): Set to true if authentication succeeded.
           * `error` (String): System error message.
-          * `code` (Number): Module `ERROR_*` constant indicating the reason for the failure.        
+          * `code` (Number): Module `ERROR_*` constant indicating the reason for the failure.
     type: Callback
-    
+
 ---
 name: DeviceCanAuthenticateResult
 platforms: [android, iphone, ipad]
 summary: Dictionary containing results for <Modules.TiIdentity.deviceCanAuthenticate>.
 since: {iphone: "3.4.0", ipad: "3.4.0", android: "5.4.0"}
 properties:
-  - name: canAuthenticate 
+  - name: canAuthenticate
     summary: Set to true if device is configured for touch ID authentication.
     type: Boolean
 
