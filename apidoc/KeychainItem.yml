@@ -4,16 +4,16 @@ platforms: [iphone, ipad]
 since: {iphone: "6.1.0", ipad: "6.1.0", android: "6.1.0"}
 extends: Titanium.Module
 description: |
-    The following example demonstrates the basic usage to save, read and delete 
+    The following example demonstrates the basic usage to save, read and delete
     values with the native iOS keychain:
-        
+
         var TiIdentity = require('ti.identity');
-        
+
         // Create a keychain item
         var keychainItem = TiIdentity.createKeychainItem({
             identifier: 'password'
         });
-        
+
         // Triggered when the keychain item was successfully saved
         keychainItem.addEventListener('save', function(e) {
             // Notify the user that the operation succeeded or failed
@@ -21,31 +21,32 @@ description: |
 
         // Write to the keychain
         keychainItem.save('s3cr3t_p4$$w0rd');
-    
-    For advanced security options, you can specify accessibility mode to the keychain 
+
+    For advanced security options, you can specify accessibility mode to the keychain
     that will be applied when writing items to the keychain, for example:
-        
+
          var TiIdentity = require('ti.identity');
 
-       // Create a keychain item
-        var keychainItem = TiIdentity.createKeychainItem({
-            identifier: 'mypassword',
-            accessGroup: '<YOUR-TEAM-ID>.com.appc.identitytest',
-            accessibilityMode: TiIdentity.ACCESSIBLE_WHEN_PASSCODE_SET_THIS_DEVICE_ONLY,
-            accessControlMode: TiIdentity.ACCESS_CONTROL_TOUCH_ID_ANY,
-            // Pass more native options to the keychain. Since there are hundrets of them,
-            // look up the value of the constant and pass it here. Example:
-            options: {
-                // The value of kSecUseOperationPrompt
-                'u_OpPrompt': 'Please authenticate yourself!'
-            }
-        });        
+         // Create a keychain item
+         var keychainItem = TiIdentity.createKeychainItem({
+           identifier: 'mypassword',
+           accessGroup: '<YOUR-TEAM-ID>.com.appc.identitytest',
+           accessibilityMode: TiIdentity.ACCESSIBLE_WHEN_PASSCODE_SET_THIS_DEVICE_ONLY,
+           accessControlMode: TiIdentity.ACCESS_CONTROL_TOUCH_ID_ANY,
+           // Pass more native options to the keychain. Since there are hundrets of them,
+           // look up the value of the constant and pass it here. Example:
+             options: {
+               // The value of kSecUseOperationPrompt
+               'u_OpPrompt': 'Please authenticate yourself!'
+           }
+         });
+
 methods:
   - name: save
     summary: Saves a new value to the iOS keychain.
     description: |
         The <Modules.TiIdentity.KeychainItem.save> event is triggered when
-        a new item is saved. If an error occurs, the `error` key informs you 
+        a new item is saved. If an error occurs, the `error` key informs you
         about the exact error.
 
         On Android this will also overwrite any existing value.
@@ -54,38 +55,38 @@ methods:
         summary: The value to be stored in the keychain.
         type: String
     since: "6.1.0"
-    
+
   - name: read
     description: |
         The <Modules.TiIdentity.KeychainItem.read> event is triggered when
-        an item is fetched. If an error occurs, the `error` key informs you 
+        an item is fetched. If an error occurs, the `error` key informs you
         about the exact error.
     summary: Reads an existing value to the iOS keychain.
     since: "6.1.0"
-    
+
   - name: update
     summary: Updates an existing value to the iOS keychain.
     description: |
         The <Modules.TiIdentity.KeychainItem.update> event is triggered when
-        an item is updated. If an error occurs, the `error` key informs you 
+        an item is updated. If an error occurs, the `error` key informs you
         about the exact error.
     parameters:
       - name: value
         summary: The value to be stored in the keychain.
         type: String
     since: "6.1.0"
-    
+
   - name: reset
     summary: Resets an existing value from the iOS keychain.
     description: |
         The <Modules.TiIdentity.KeychainItem.reset> event is triggered when
-        a new item is saved. If an error occurs, the `error` key informs you 
+        a new item is saved. If an error occurs, the `error` key informs you
         about the exact error.
     since: "6.1.0"
-    
+
   - name: fetchExistence
     summary: |
-        Asynchronously determines whether or not a value of the specified identifier 
+        Asynchronously determines whether or not a value of the specified identifier
         exists in the keychain item.
     parameters:
       - name: result
@@ -119,10 +120,10 @@ properties:
       platforms: [iphone, ipad, android]
       optional: false
       summary: |
-          Required identifier to create or receive a keychain item. The identifier 
+          Required identifier to create or receive a keychain item. The identifier
           cannot contain alphanumeric characters or it might be rejected by the keychain.
       type: String
-          
+
     - name: accessGroup
       platforms: [iphone, ipad]
       summary: |
@@ -136,17 +137,17 @@ properties:
     - name: accessibilityMode
       platforms: [iphone, ipad, android]
       summary: |
-          Optional constant used for determining when a keychain item should be 
+          Optional constant used for determining when a keychain item should be
           readable. Use this property with caution to enable advanced access control.
-          More information about this property and it's values can be found in the 
+          More information about this property and it's values can be found in the
           [official iOS documentation](https://developer.apple.com/reference/security/1658642-keychain_services/1663541-keychain_item_accessibility_cons).
       type: Number
       constants: Modules.TiIdentity.ACCESSIBLE_*
-      
+
     - name: accessControlMode
       platforms: [iphone, ipad, android]
       summary: |
-          Optional constants used to determine the access control with the specified 
+          Optional constants used to determine the access control with the specified
           protection type and flags. The constants can be concatenated by using the
           Bit OR operator, e.g. `optionA | optionB | optionC`.
       type: Number
