@@ -1,6 +1,6 @@
 <h1 align="center">🔐 Ti.Identity</h1>
 
-The Ti.Identity module allows you to use Fingerprint authentication, Keychain Access and Face authentication (iOS) with Axway Titanium.
+<p align="center">This native module allows you to use Fingerprint authentication, Keychain Access and Face authentication (iOS) with Axway Titanium.</p>
 
 ## Requirements
 - Titanium Mobile SDK 6.2.0 or later
