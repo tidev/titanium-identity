@@ -1,6 +1,5 @@
-# 🔐 Ti.Identity [![Build Status](https://travis-ci.org/appcelerator-modules/titanium-identity.svg?branch=master)](https://travis-ci.org/appcelerator-modules/titanium-identity)
+<h1 align="center">🔐 Ti.Identity</h1>
 
-# Summary
 The Ti.Identity module allows you to use Fingerprint authentication, Keychain Access and Face authentication (iOS) with Axway Titanium.
 
 ## Requirements
