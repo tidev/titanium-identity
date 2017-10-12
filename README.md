@@ -1,8 +1,5 @@
 # 🔐 Ti.Identity [![Build Status](https://travis-ci.org/appcelerator-modules/titanium-identity.svg?branch=master)](https://travis-ci.org/appcelerator-modules/titanium-identity)
 
-> ⚠️ **Important**: This module is still under development and will be released with Titanium SDK 6.3.0 and
-the release of the iPhone X. Feel free to try it out early, but please do not consider using it in production, yet!
-
 # Summary
 The Ti.Identity module allows you to use Fingerprint authentication, Keychain Access and Face authentication (iOS) with Axway Titanium.
 

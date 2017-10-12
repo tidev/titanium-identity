@@ -1,4 +1,4 @@
-name: Modules.TiIdentity.KeychainItem
+name: Modules.Identity.KeychainItem
 summary: Represents a keychain item to communicate with the native iOS keychain.
 platforms: [iphone, ipad]
 since: {iphone: "6.1.0", ipad: "6.1.0", android: "6.1.0"}
@@ -7,10 +7,10 @@ description: |
     The following example demonstrates the basic usage to save, read and delete
     values with the native iOS keychain:
 
-        var TiIdentity = require('ti.identity');
+        var Identity = require('ti.identity');
 
         // Create a keychain item
-        var keychainItem = TiIdentity.createKeychainItem({
+        var keychainItem = Identity.createKeychainItem({
             identifier: 'password'
         });
 
@@ -25,14 +25,14 @@ description: |
     For advanced security options, you can specify accessibility mode to the keychain
     that will be applied when writing items to the keychain, for example:
 
-         var TiIdentity = require('ti.identity');
+         var Identity = require('ti.identity');
 
          // Create a keychain item
-         var keychainItem = TiIdentity.createKeychainItem({
+         var keychainItem = Identity.createKeychainItem({
            identifier: 'mypassword',
            accessGroup: '<YOUR-TEAM-ID>.com.appc.identitytest',
-           accessibilityMode: TiIdentity.ACCESSIBLE_WHEN_PASSCODE_SET_THIS_DEVICE_ONLY,
-           accessControlMode: TiIdentity.ACCESS_CONTROL_TOUCH_ID_ANY,
+           accessibilityMode: Identity.ACCESSIBLE_WHEN_PASSCODE_SET_THIS_DEVICE_ONLY,
+           accessControlMode: Identity.ACCESS_CONTROL_TOUCH_ID_ANY,
            // Pass more native options to the keychain. Since there are hundrets of them,
            // look up the value of the constant and pass it here. Example:
              options: {
@@ -45,7 +45,7 @@ methods:
   - name: save
     summary: Saves a new value to the iOS keychain.
     description: |
-        The <Modules.TiIdentity.KeychainItem.save> event is triggered when
+        The <Modules.Identity.KeychainItem.save> event is triggered when
         a new item is saved. If an error occurs, the `error` key informs you
         about the exact error.
 
@@ -58,7 +58,7 @@ methods:
 
   - name: read
     description: |
-        The <Modules.TiIdentity.KeychainItem.read> event is triggered when
+        The <Modules.Identity.KeychainItem.read> event is triggered when
         an item is fetched. If an error occurs, the `error` key informs you
         about the exact error.
     summary: Reads an existing value to the iOS keychain.
@@ -67,7 +67,7 @@ methods:
   - name: update
     summary: Updates an existing value to the iOS keychain.
     description: |
-        The <Modules.TiIdentity.KeychainItem.update> event is triggered when
+        The <Modules.Identity.KeychainItem.update> event is triggered when
         an item is updated. If an error occurs, the `error` key informs you
         about the exact error.
     parameters:
@@ -79,7 +79,7 @@ methods:
   - name: reset
     summary: Resets an existing value from the iOS keychain.
     description: |
-        The <Modules.TiIdentity.KeychainItem.reset> event is triggered when
+        The <Modules.Identity.KeychainItem.reset> event is triggered when
         a new item is saved. If an error occurs, the `error` key informs you
         about the exact error.
     since: "6.1.0"
@@ -142,7 +142,7 @@ properties:
           More information about this property and it's values can be found in the
           [official iOS documentation](https://developer.apple.com/reference/security/1658642-keychain_services/1663541-keychain_item_accessibility_cons).
       type: Number
-      constants: Modules.TiIdentity.ACCESSIBLE_*
+      constants: Modules.Identity.ACCESSIBLE_*
 
     - name: accessControlMode
       platforms: [iphone, ipad, android]
@@ -151,7 +151,7 @@ properties:
           protection type and flags. The constants can be concatenated by using the
           Bit OR operator, e.g. `optionA | optionB | optionC`.
       type: Number
-      constants: Modules.TiIdentity.ACCESS_CONTROL_*
+      constants: Modules.Identity.ACCESS_CONTROL_*
 
     - name: cipher
       platforms: [android]

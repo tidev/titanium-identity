@@ -1,4 +1,4 @@
-name: Modules.TiIdentity
+name: Modules.Identity
 summary: Allows a Titanium application to use the iOS Touch ID authentication mechanism.
 platforms: [iphone, ipad, android]
 since: {iphone: "3.4.0", ipad: "3.4.0", android: "5.4.0"}
@@ -35,11 +35,11 @@ description: |
 
     Use `require()` to access the module from JavaScript:
 
-        var TiIdentity = require('ti.identity');
+        var Identity = require('ti.identity');
 
-    The `TiIdentity` variable is a reference to the module. Make API calls using this reference:
+    The `Identity` variable is a reference to the module. Make API calls using this reference:
 
-        TiIdentity.authenticate({
+        Identity.authenticate({
             reason: 'Verify to modify personal settings',
             callback: function(e) {
                 Ti.API.info(e);
@@ -49,7 +49,7 @@ description: |
     ### Lifetime Notes (iOS-only)
 
     The current context will, once evaluated, be used until it's instance gets released or invalidated.
-    You can you use the <Modules.TiIdentity.invalidate> method to force the user to be prompted every time a
+    You can you use the <Modules.Identity.invalidate> method to force the user to be prompted every time a
     new authentication is triggered. On iOS 9 and later, this can also be called to cancel a current
     evaluation of an auth-context, e.g. to hide the auth-dialoag.
 
@@ -75,7 +75,7 @@ methods:
     parameters:
       - name: params
         summary: Dictionary of arguments passed to the method, e.g. the reason to autheicate and the callback.
-        type: TiIdentityAuthenticationType
+        type: IdentityAuthenticationType
 
   - name: invalidate
     summary: Invalidates the current Touch ID dialog.
@@ -84,8 +84,8 @@ methods:
 
         This method allows invalidating it manually while it is still in scope.
         Invalidation terminates any existing policy evaluation and the respective call will
-        fail with <Modules.TiIdentity.ERROR_APP_CANCELLED>. After the context has been invalidated, it can not be
-        used for policy evaluation and an attempt to do so will fail with <Modules.TiIdentity.ERROR_INVALID_CONTEXT>.
+        fail with <Modules.Identity.ERROR_APP_CANCELLED>. After the context has been invalidated, it can not be
+        used for policy evaluation and an attempt to do so will fail with <Modules.Identity.ERROR_INVALID_CONTEXT>.
 
         See the "Lifetime Notes (iOS-only)" paragraph in the module paragraph for more infos.
 
@@ -96,8 +96,8 @@ methods:
     summary: Checks to see if device is configured for Touch ID authentication.
     description: |
         Example:
-            var TiIdentity = require("ti.identity");
-            var result = TiIdentity.deviceCanAuthenticate();
+            var Identity = require("ti.identity");
+            var result = Identity.deviceCanAuthenticate();
             if (!result.canAuthenticate) {
                 alert('Message: ' + result.error + '\nCode: ' + result.code);
             } else {
@@ -122,21 +122,21 @@ properties:
     platforms: [iphone, ipad]
     since: "6.1.0"
     type: Number
-    constants: [Modules.TiIdentity.AUTHENTICATION_POLICY_*]
-    default: Modules.TiIdentity.AUTHENTICATION_POLICY_BIOMETRICS
+    constants: [Modules.Identity.AUTHENTICATION_POLICY_*]
+    default: Modules.Identity.AUTHENTICATION_POLICY_BIOMETRICS
 
   - name: biometryType
     summary: Indicates the type of the biometry supported by the device.
     description: |
-        This property is set only when <Modules.TiIdentity.isSupported> succeeds for a biometric policy.
-        The default value is <Modules.TiIdentity.BIOMETRY_NONE>.
+        This property is set only when <Modules.Identity.isSupported> succeeds for a biometric policy.
+        The default value is <Modules.Identity.BIOMETRY_NONE>.
     platforms: [iphone, ipad]
     since: "6.3.0"
     type: Number
     osver: {ios: {min: "11.0"}}
     permission: read-only
-    constants: [Modules.TiIdentity.BIOMETRY_*]
-    default: Modules.TiIdentity.BIOMETRY_NONE
+    constants: [Modules.Identity.BIOMETRY_*]
+    default: Modules.Identity.BIOMETRY_NONE
 
   - name: AUTHENTICATION_POLICY_PASSCODE
     summary: Device owner was authenticated by Touch ID or device passcode.
@@ -182,7 +182,7 @@ properties:
   - name: BIOMETRY_TYPE_NONE
     summary: The device does not support biometry.
     description: |
-        Used as a return-value for <Modules.TiIdentity.biometryType>.
+        Used as a return-value for <Modules.Identity.biometryType>.
     type: Number
     permission: read-only
     platforms: [iphone, ipad]
@@ -192,7 +192,7 @@ properties:
   - name: BIOMETRY_TYPE_FACE_ID
     summary: he device supports Face ID.
     description: |
-        Used as a return-value for <Modules.TiIdentity.biometryType>.
+        Used as a return-value for <Modules.Identity.biometryType>.
     type: Number
     permission: read-only
     platforms: [iphone, ipad]
@@ -202,7 +202,7 @@ properties:
   - name: BIOMETRY_TYPE_TOUCH_ID
     summary: he device supports Touch ID.
     description: |
-        Used as a return-value for <Modules.TiIdentity.biometryType>.
+        Used as a return-value for <Modules.Identity.biometryType>.
     type: Number
     permission: read-only
     platforms: [iphone, ipad]
@@ -225,7 +225,7 @@ properties:
     summary: |
         Constant indicating that Touch ID is not available on the device.
         Note: This constant has been deprecated for iOS 11 and later. Use
-        <Modules.TiIdentity.ERROR_BIOMETRY_NOT_AVAILABLE> for apps targeting iOS 11
+        <Modules.Identity.ERROR_BIOMETRY_NOT_AVAILABLE> for apps targeting iOS 11
         and later.
     type: Number
     permission: read-only
@@ -235,7 +235,7 @@ properties:
     summary: |
         Constant indicating that Touch ID does not have any enrolled fingerprints.
         Note: This constant has been deprecated for iOS 11 and later. Use
-        <Modules.TiIdentity.ERROR_TOUCH_ID_NOT_ENROLLED for apps targeting iOS 11
+        <Modules.Identity.ERROR_TOUCH_ID_NOT_ENROLLED for apps targeting iOS 11
         and later.
     type: Number
     permission: read-only
@@ -277,7 +277,7 @@ properties:
     summary: |
          Constant indicating that Touch ID has locked out.
          Note: This constant has been deprecated for iOS 11 and later. Use
-         <Modules.TiIdentity.ERROR_BIOMETRY_LOCKOUT> for apps targeting iOS 11
+         <Modules.Identity.ERROR_BIOMETRY_LOCKOUT> for apps targeting iOS 11
          and later.
     type: Number
     permission: read-only
@@ -287,7 +287,7 @@ properties:
     summary: |
         Authentication was not successful, because there were too many failed biometry
         attempts and biometry is now locked. Passcode is required to unlock biometry,
-        e.g. evaluating <Modules.TiIdentity.authenticate> will ask for passcode as a prerequisite.
+        e.g. evaluating <Modules.Identity.authenticate> will ask for passcode as a prerequisite.
     since: "6.3.0"
     type: Number
     osver: {ios: {min: "11.0"}}
@@ -463,9 +463,9 @@ properties:
     since: "6.1.0"
 
 ---
-name: TiIdentityAuthenticationType
+name: IdentityAuthenticationType
 platforms: [android, iphone, ipad]
-summary: Dictionary passed to <Modules.TiIdentity.authenticate>.
+summary: Dictionary passed to <Modules.Identity.authenticate>.
 properties:
   - name: reason
     optional: false
@@ -551,7 +551,7 @@ properties:
 ---
 name: DeviceCanAuthenticateResult
 platforms: [android, iphone, ipad]
-summary: Dictionary containing results for <Modules.TiIdentity.deviceCanAuthenticate>.
+summary: Dictionary containing results for <Modules.Identity.deviceCanAuthenticate>.
 since: {iphone: "3.4.0", ipad: "3.4.0", android: "5.4.0"}
 properties:
   - name: canAuthenticate
