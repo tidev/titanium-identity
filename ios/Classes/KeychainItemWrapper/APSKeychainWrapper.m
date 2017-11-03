@@ -45,12 +45,16 @@ APSErrorDomain const APSKeychainWrapperErrorDomain = @"com.appcelerator.keychain
 
 - (void)exists:(void (^)(BOOL exists, NSError *error))completionBlock;
 {
-    NSDictionary *query = @{
+    NSMutableDictionary *query = [NSMutableDictionary dictionaryWithDictionary:@{
         (id)kSecClass: [baseAttributes objectForKey:(id)kSecClass],
         (id)kSecAttrService: [baseAttributes objectForKey:(id)kSecAttrService],
-        (id)kSecAttrAccount: [baseAttributes objectForKey:(id)kSecAttrAccount],
-        (id)kSecUseAuthenticationUI: (id)kSecUseAuthenticationUIFail // Supress TouchID dialog for existence check
-    };
+        (id)kSecAttrAccount: [baseAttributes objectForKey:(id)kSecAttrAccount]
+    }];
+  
+    // kSecUseAuthenticationUI constants are iOS 9+
+    if ([[[UIDevice currentDevice] systemVersion] compare:@"9.0" options:NSNumericSearch] != NSOrderedAscending) {
+        query[(id)kSecUseAuthenticationUI] = (id) kSecUseAuthenticationUIFail; // Supress TouchID dialog for existence check
+    }
     
     // Dispatch into our priority queue
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{

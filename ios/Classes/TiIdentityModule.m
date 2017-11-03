@@ -62,7 +62,7 @@
 - (NSNumber *)biometryType
 {
   if (@available(iOS 11.0, *)) {
-    return NUMINT(LABiometryTypeTouchID);
+    return NUMINT([[self authContext] biometryType]);
   } else {
     NSLog(@"[ERROR] Ti.Identity.biometryType is only available on iOS 11 and later!");
     return NUMINT(-1);
