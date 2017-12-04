@@ -7,34 +7,49 @@
  */
 var TiIdentity = require('ti.identity');
 
-var win = Ti.UI.createWindow();
-var btn = Ti.UI.createButton({
-	title: 'authenticate'
-});
+var isiOS = Ti.Platform.name === 'iOS' || Ti.Platform.name === 'iPhone OS';
+var authPhrase = 'Fingerprint';
 
 // You can set the authentication policy on iOS (biometric or passcode)
-if (Ti.Platform.name === 'iPhone OS') {
+// In this case, we also check for Touch ID vs Face ID for a more personalized UI
+if (isiOS) {
+	// In order to check the biometry type, you have to check if biometrics are supported in general
+	var supported =  TiIdentity.isSupported();
+	
+	if (TiIdentity.biometryType == TiIdentity.BIOMETRY_TYPE_FACE_ID) {
+		authPhrase = 'Face ID';
+	} else if (TiIdentity.biometryType == TiIdentity.BIOMETRY_TYPE_TOUCH_ID) {
+		authPhrase = 'Touch ID';
+	} else {
+		authPhrase = '(None available)'
+	}
+
+	if (!supported) {
+		alert('Authentication is not supported. Available biometrics: ' + authPhrase);
+	}
+
 	// Using this constant, iOS will automatically offer to authenticate with Face ID or Touch ID
 	// when calling "authenticate" below.
 	TiIdentity.setAuthenticationPolicy(TiIdentity.AUTHENTICATION_POLICY_BIOMETRICS); // or: AUTHENTICATION_POLICY_PASSCODE
 }
 
+var win = Ti.UI.createWindow();
+var btn = Ti.UI.createButton({
+	title: 'Authenticate with: ' + authPhrase
+});
+
 win.add(btn);
 win.open();
 
-btn.addEventListener('click', function(){
-
-	if(!TiIdentity.isSupported()) {
-		alert('Touch ID is not supported on this device!');
-		return;
-	}
-	
+btn.addEventListener('click', function(){	
 	TiIdentity.authenticate({
-		reason: 'We need your fingerprint to continue.',
+		reason: 'Can we access this content?',
 		allowableReuseDuration: 30, // iOS 9+, optional, in seconds, only used for lockscreen-unlocks
 		fallbackTitle: 'Use different auth method?', // iOS 10+, optional
 		cancelTitle: 'Get me outta here!', // iOS 10+, optional
 		callback: function(e) {
+			TiIdentity.invalidate();
+
 			if (!e.success) {
 				alert('Error! Message: ' + e.error + '\nCode: ' + e.code);
 				switch(e.code) {
