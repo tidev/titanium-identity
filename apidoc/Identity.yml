@@ -1,24 +1,15 @@
 name: Modules.Identity
-summary: Allows a Titanium application to use the iOS Touch ID authentication mechanism.
+summary: Allows a Titanium application to use the iOS Touch ID / Face ID authentication mechanism.
 platforms: [iphone, ipad, android]
-since: {iphone: "3.4.0", ipad: "3.4.0", android: "5.4.0"}
+since: {iphone: "6.3.0", ipad: "6.3.0", android: "6.3.0"}
 extends: Titanium.Module
 description: |
-    Touch ID is a security mechanism that uses a fingerprint to authenticate the user. The
-    fingerprint sensor is located in the Home button of the device.  Users can use their fingerprint
-    instead of entering their passcode for authentication.
+    Touch ID / Face ID are security mechanisms that use biometric sensors to authenticate the user.
 
     ### Requirements
 
-    The Touch ID module is available with the Titanium SDK starting with Release 3.4.0.
-    This module only works with devices running iOS 8.  You can only test the Touch ID module on a device.
-
-    The device must have a Touch ID sensor in the Home button and Touch ID must be setup in order to use
-    the Touch ID authentication mechanism.  You can set up Touch ID in iOS Setup Assistant or by
-    tapping **Touch ID & Passcode** from Settings.
-
-    For information on setting up Touch ID, see
-    [iPhone 5s: Using Touch ID](http://support.apple.com/kb/HT5883).
+    The Identity module is available with the Titanium SDK starting with Release 6.3.0.
+    This module only works with devices running iOS 8 and later.
 
     ### Getting Started
 
@@ -52,6 +43,19 @@ description: |
     You can you use the <Modules.Identity.invalidate> method to force the user to be prompted every time a
     new authentication is triggered. On iOS 9 and later, this can also be called to cancel a current
     evaluation of an auth-context, e.g. to hide the auth-dialoag.
+    
+    ## Distinguish between Touch ID and Face ID
+    
+    Use the <Modules.Identity.biometryType> to receive the currently used biometry type. See an example of
+    using the property to create a personalized interface when using Touch ID and Face ID:
+
+        var authPhrase = 'Unknown'
+    
+	    if (TiIdentity.biometryType == TiIdentity.BIOMETRY_TYPE_FACE_ID) { // Face ID 
+		    authPhrase = 'Face ID';
+	    } else if (TiIdentity.biometryType == TiIdentity.BIOMETRY_TYPE_TOUCH_ID) { // Touch ID
+		    authPhrase = 'Touch ID';
+	    }
 
     ### Native Keychain Integration
 
@@ -64,7 +68,7 @@ description: |
 
 methods:
   - name: authenticate
-    summary: Initiates the Touch ID authentication process.
+    summary: Initiates the biometric authentication process.
     description: |
       A special note for Android:
 
@@ -78,7 +82,7 @@ methods:
         type: IdentityAuthenticationType
 
   - name: invalidate
-    summary: Invalidates the current Touch ID dialog.
+    summary: Invalidates the current biometric dialog.
     description: |
         The context is invalidated automatically when it is (auto)released.
 
@@ -93,7 +97,7 @@ methods:
     since: "6.1.0"
 
   - name: deviceCanAuthenticate
-    summary: Checks to see if device is configured for Touch ID authentication.
+    summary: Checks to see if device is configured for biometric authentication.
     description: |
         Example:
             var Identity = require("ti.identity");
@@ -129,14 +133,14 @@ properties:
     summary: Indicates the type of the biometry supported by the device.
     description: |
         This property is set only when <Modules.Identity.isSupported> succeeds for a biometric policy.
-        The default value is <Modules.Identity.BIOMETRY_NONE>.
+        The default value is <Modules.Identity.BIOMETRY_TYPE_NONE>.
     platforms: [iphone, ipad]
     since: "6.3.0"
     type: Number
     osver: {ios: {min: "11.0"}}
     permission: read-only
     constants: [Modules.Identity.BIOMETRY_*]
-    default: Modules.Identity.BIOMETRY_NONE
+    default: Modules.Identity.BIOMETRY_TYPE_NONE
 
   - name: AUTHENTICATION_POLICY_PASSCODE
     summary: Device owner was authenticated by Touch ID or device passcode.
@@ -159,11 +163,11 @@ properties:
     since: "6.1.0"
 
   - name: AUTHENTICATION_POLICY_BIOMETRICS
-    summary: Device owner was authenticated using a biometric method (Touch ID).
+    summary: Device owner was authenticated using a biometric method.
     description: |
-        Touch ID authentication is required. If Touch ID is not available or not
-        enrolled, policy evaluation will fail. If Touch ID is locked out, passcode
-        is required as the first step to unlock the Touch ID.
+        A biometric authentication is required. If there are no biometrics available or not
+        enrolled, policy evaluation will fail. If Touch ID / Face ID is locked out, passcode
+        is required as the first step to unlock with Touch ID.
 
         Touch ID authentication dialog contains a cancel button with default title
         "Cancel" which can be customized using `cancelTitle` property and a fallback
@@ -190,7 +194,7 @@ properties:
     since: "6.3.0"
 
   - name: BIOMETRY_TYPE_FACE_ID
-    summary: he device supports Face ID.
+    summary: The device supports Face ID.
     description: |
         Used as a return-value for <Modules.Identity.biometryType>.
     type: Number
@@ -200,7 +204,7 @@ properties:
     since: "6.3.0"
 
   - name: BIOMETRY_TYPE_TOUCH_ID
-    summary: he device supports Touch ID.
+    summary: The device supports Touch ID.
     description: |
         Used as a return-value for <Modules.Identity.biometryType>.
     type: Number
@@ -393,8 +397,8 @@ properties:
 
   - name: ACCESS_CONTROL_USER_PRESENCE
     summary: |
-        User presence policy using Touch ID or Passcode. Touch ID does not have
-        to be available or enrolled. Item is still accessible by Touch ID even
+        User presence policy using Touch ID, Face ID or Passcode. Touch ID / Face ID does not have
+        to be available or enrolled. Item is still accessible by Touch ID / Face ID even
         if fingers are added or removed.
     type: Number
     permission: read-only
@@ -480,16 +484,16 @@ properties:
     summary: |
         Note: This property is iOS only!
 
-        The time interval (in seconds) for accepting a successful Touch ID device
+        The time interval (in seconds) for accepting a successful Touch ID / Face ID device
         unlock (on the lock screen) from the past.  If the device  was successfully
-        unlocked by Touch ID within this time interval, then Touch ID authentication
+        unlocked by Touch ID / Face ID within this time interval, then the biometric authentication
         on this context will succeed automatically and the reply block will be
-        called without prompting user for Touch ID.
+        called without prompting user for authentication.
 
         The default value is 0, meaning that no previous TouchID unlock can be reused.
 
-        This property is meant only for reusing Touch ID matches from the device
-        lock screen. It does not allow reusing previous Touch ID matches in
+        This property is meant only for reusing biometric matches from the device
+        lock screen. It does not allow reusing previous biometric matches in
         application or between applications.
 
         The maximum supported interval is 5 minutes and setting the value beyond
@@ -555,7 +559,7 @@ summary: Dictionary containing results for <Modules.Identity.deviceCanAuthentica
 since: {iphone: "3.4.0", ipad: "3.4.0", android: "5.4.0"}
 properties:
   - name: canAuthenticate
-    summary: Set to true if device is configured for touch ID authentication.
+    summary: Set to true if device is configured for Touch ID / Face ID authentication.
     type: Boolean
 
   - name: error

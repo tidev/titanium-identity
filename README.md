@@ -29,4 +29,4 @@ Hans Knöchel, Axway
 Apache 2.0
 
 ## Contributing
-Code contributions are greatly appreciated, please submit a new [pull request](https://github.com/appcelerator-modules/ti.identity/pull/new/master)!
+Code contributions are greatly appreciated, please submit a new [pull request](https://github.com/appcelerator-modules/titanium-identity/pull/new/master)!
