@@ -129,14 +129,14 @@ properties:
     summary: Indicates the type of the biometry supported by the device.
     description: |
         This property is set only when <Modules.Identity.isSupported> succeeds for a biometric policy.
-        The default value is <Modules.Identity.BIOMETRY_NONE>.
+        The default value is <Modules.Identity.BIOMETRY_TYPE_NONE>.
     platforms: [iphone, ipad]
     since: "6.3.0"
     type: Number
     osver: {ios: {min: "11.0"}}
     permission: read-only
     constants: [Modules.Identity.BIOMETRY_*]
-    default: Modules.Identity.BIOMETRY_NONE
+    default: Modules.Identity.BIOMETRY_TYPE_NONE
 
   - name: AUTHENTICATION_POLICY_PASSCODE
     summary: Device owner was authenticated by Touch ID or device passcode.
@@ -190,7 +190,7 @@ properties:
     since: "6.3.0"
 
   - name: BIOMETRY_TYPE_FACE_ID
-    summary: he device supports Face ID.
+    summary: The device supports Face ID.
     description: |
         Used as a return-value for <Modules.Identity.biometryType>.
     type: Number
@@ -200,7 +200,7 @@ properties:
     since: "6.3.0"
 
   - name: BIOMETRY_TYPE_TOUCH_ID
-    summary: he device supports Touch ID.
+    summary: The device supports Touch ID.
     description: |
         Used as a return-value for <Modules.Identity.biometryType>.
     type: Number
