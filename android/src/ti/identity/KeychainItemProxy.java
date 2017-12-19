@@ -1,5 +1,5 @@
 /**
- * Axway Appcelerator Titanium - Ti.Identity
+ * Axway Appcelerator Titanium - ti.identity
  * Copyright (c) 2017 by Axway. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
@@ -13,6 +13,7 @@ import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.titanium.TiApplication;
 
+import android.app.KeyguardManager;
 import android.content.Context;
 import android.hardware.fingerprint.FingerprintManager;
 import android.hardware.fingerprint.FingerprintManager.CryptoObject;
@@ -20,6 +21,7 @@ import android.hardware.fingerprint.FingerprintManager.AuthenticationCallback;
 import android.os.Build;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
+import android.security.keystore.KeyPermanentlyInvalidatedException;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -27,6 +29,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,8 +62,8 @@ public class KeychainItemProxy extends KrollProxy {
 
 	public static final int ACCESS_CONTROL_USER_PRESENCE = 1;
 	public static final int ACCESS_CONTROL_DEVICE_PASSCODE = 2;
-	public static final int ACCESS_CONTROL_TOUCH_ID_ANY = 3;
-	public static final int ACCESS_CONTROL_TOUCH_ID_CURRENT_SET = 4;
+	public static final int ACCESS_CONTROL_TOUCH_ID_ANY = 4;
+	public static final int ACCESS_CONTROL_TOUCH_ID_CURRENT_SET = 8;
 
 	private KeyStore keyStore;
 	private SecretKey key;
@@ -77,6 +81,7 @@ public class KeychainItemProxy extends KrollProxy {
 	private String identifier = "";
 	private int accessibilityMode = 0;
 	private int accessControlMode = 0;
+	private KeyguardManager keyguardManager;
 	private String suffix = "_kc.dat";
 	private Context context;
 
@@ -106,6 +111,7 @@ public class KeychainItemProxy extends KrollProxy {
 
 		try {
 			context = TiApplication.getAppRootOrCurrentActivity();
+			keyguardManager = context.getSystemService(KeyguardManager.class);
 
 			// fingerprint authentication
 			fingerprintManager = context.getSystemService(FingerprintManager.class);
@@ -113,25 +119,27 @@ public class KeychainItemProxy extends KrollProxy {
 				@Override
 				public void onAuthenticationError(int errorCode, CharSequence errString) {
 					super.onAuthenticationError(errorCode, errString);
-					Log.e(TAG, errString.toString());
+					if (errorCode != FingerprintManager.FINGERPRINT_ERROR_CANCELED) {
+						doEvents(errorCode, errString.toString());
+					}
 				}
 
 				@Override
 				public void onAuthenticationHelp(int helpCode, CharSequence helpString) {
 					super.onAuthenticationHelp(helpCode, helpString);
-					Log.w(TAG, helpString.toString());
+					doEvents(helpCode, helpString.toString());
 				}
 
 				@Override
 				public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
 					super.onAuthenticationSucceeded(result);
-					doEvents();
+					doEvents(0, null);
 				}
 
 				@Override
 				public void onAuthenticationFailed() {
 					super.onAuthenticationFailed();
-					Log.e(TAG, "failed to authenticate fingerprint!");
+					doEvents(TitaniumIdentityModule.ERROR_AUTHENTICATION_FAILED, "failed to authenticate fingerprint!");
 				}
 			};
 
@@ -195,32 +203,43 @@ public class KeychainItemProxy extends KrollProxy {
 				eventBusy = false;
 				processEvents();
 			} else if (!useFingerprintAuthentication()) {
-				doEvents();
+				doEvents(0, null);
 			}
 		}
 	}
 
-	private void doEvents() {
-		EVENT e = eventQueue.get(0);
-		switch (e.event) {
-			case EVENT_UPDATE:
-				if (!exists()) {
-					KrollDict result = new KrollDict();
-					result.put("success", false);
-					result.put("code", -1);
-					result.put("error", "could not update, item does not exist.");
-					fireEvent(e.event, result);
-					break;
+	private void doEvents(int errorCode, String message) {
+		KrollDict result = null;
+		if (!eventQueue.isEmpty()) {
+			EVENT e = eventQueue.get(0);
+			if (errorCode != 0) {
+				result = new KrollDict();
+				result.put("success", false);
+				result.put("code", errorCode);
+				result.put("error", message);
+			} else {
+				switch (e.event) {
+					case EVENT_UPDATE:
+						if (!exists()) {
+							result = new KrollDict();
+							result.put("success", false);
+							result.put("code", -1);
+							result.put("error", "could not update, item does not exist.");
+							break;
+						}
+					case EVENT_SAVE:
+						result = doEncrypt(e.value);
+						break;
+					case EVENT_READ:
+						result = doDecrypt();
+						break;
 				}
-			case EVENT_SAVE:
-				fireEvent(e.event, doEncrypt(e.value));
-				break;
-			case EVENT_READ:
-				fireEvent(e.event, doDecrypt());
-				break;
+			}
+			if (result != null) {
+				fireEvent(e.event, result);
+			}
+			eventQueue.remove(e);
 		}
-		eventQueue.remove(e);
-
 		eventBusy = false;
 		processEvents();
 	}
@@ -232,15 +251,23 @@ public class KeychainItemProxy extends KrollProxy {
 
 			// fingerprint authentication
 			if (useFingerprintAuthentication()) {
-				fingerprintManager.authenticate(cryptoObject, null, 0, authenticationCallback, null);
+				fingerprintManager.authenticate(cryptoObject, FingerPrintHelper.cancellationSignal(), 0, authenticationCallback, null);
 			}
 
 		} catch (Exception e) {
 			KrollDict result = new KrollDict();
 			result.put("identifier", identifier);
 			result.put("success", false);
-			result.put("code", -1);
-			result.put("error", e.getMessage());
+			if (e instanceof InvalidKeyException && key == null) {
+				result.put("code", TitaniumIdentityModule.ERROR_PASSCODE_NOT_SET);
+				result.put("error", "device is not secure, could not generate key!");
+			} else if (e instanceof KeyPermanentlyInvalidatedException) {
+				result.put("code", TitaniumIdentityModule.ERROR_KEY_PERMANENTLY_INVALIDATED);
+				result.put("error", "key permantently invalidated!");
+			} else {
+				result.put("code", -1);
+				result.put("error", e.getMessage());
+			}
 			return result;
 		}
 		return null;
@@ -258,7 +285,7 @@ public class KeychainItemProxy extends KrollProxy {
 
 			// write encrypted data
 			CipherOutputStream cos = new CipherOutputStream(new BufferedOutputStream(fos), cipher);
-			cos.write(value.getBytes("UTF-8"));
+			cos.write(value.getBytes(StandardCharsets.UTF_8));
 			cos.close();
 
 			result.put("success", true);
@@ -286,7 +313,7 @@ public class KeychainItemProxy extends KrollProxy {
 
 			// fingerprint authentication
 			if (useFingerprintAuthentication()) {
-				fingerprintManager.authenticate(cryptoObject, null, 0, authenticationCallback, null);
+				fingerprintManager.authenticate(cryptoObject, FingerPrintHelper.cancellationSignal(), 0, authenticationCallback, null);
 			}
 
 		} catch (Exception e) {
@@ -296,6 +323,12 @@ public class KeychainItemProxy extends KrollProxy {
 			result.put("code", -1);
 			if (e instanceof FileNotFoundException) {
 				result.put("error", "keychain data does not exist!");
+			} else if (e instanceof InvalidKeyException && key == null) {
+				result.put("code", TitaniumIdentityModule.ERROR_PASSCODE_NOT_SET);
+				result.put("error", "device is not secure, could not generate key!");
+			} else if (e instanceof KeyPermanentlyInvalidatedException) {
+				result.put("code", TitaniumIdentityModule.ERROR_KEY_PERMANENTLY_INVALIDATED);
+				result.put("error", "key permantently invalidated!");
 			} else {
 				result.put("error", e.getMessage());
 			}
@@ -318,12 +351,19 @@ public class KeychainItemProxy extends KrollProxy {
 			int length = 0;
 			int total = 0;
 			String decrypted = "";
+
+			// since we only encrypt strings, this is acceptable
 			while ((length = cis.read(buffer)) != -1) {
-				// since we only encrypt strings, this is acceptable
-				decrypted += new String(buffer, "UTF-8");
+				// obtain decrypted string from buffer
+				String part = new String(buffer, StandardCharsets.UTF_8);
+
+				// remove trailing terminators
+				part = part.substring(0, length).replaceFirst("\u0000+$", "");
+
+				// append to decrypted string
+				decrypted += part;
 				total += length;
 			}
-			decrypted = decrypted.substring(0, total);
 
 			result.put("success", true);
 			result.put("code", 0);
@@ -345,19 +385,20 @@ public class KeychainItemProxy extends KrollProxy {
 		boolean deleted = false;
 
 		// delete file from private storage
-		File file = new File(identifier + suffix);
-		if (file != null) {
+		File file = context.getFileStreamPath(identifier + suffix);
+		if (file != null && file.exists()) {
 			deleted = context.deleteFile(identifier + suffix);
 
 			// remove key from Android key store
-			if (deleted) {
+			/*if (deleted) {
 				try {
 					keyStore.deleteEntry(identifier);
 				} catch (Exception e) {
 					deleted = false;
 					result.put("error", "could not remove key");
 				}
-			} else {
+			} else {*/
+			if (!deleted) {
 				result.put("error", "could not delete data");
 			}
 		}
@@ -368,7 +409,8 @@ public class KeychainItemProxy extends KrollProxy {
 	}
 
 	private boolean exists() {
-		return new File(identifier + suffix) != null;
+		File file = context.getFileStreamPath(identifier + suffix);
+		return file != null && file.exists();
 	}
 
 	@Kroll.method
@@ -437,7 +479,7 @@ public class KeychainItemProxy extends KrollProxy {
 								.setEncryptionPaddings(padding);
 
 						if ((accessibilityMode & (ACCESSIBLE_ALWAYS_THIS_DEVICE_ONLY | ACCESSIBLE_WHEN_PASSCODE_SET_THIS_DEVICE_ONLY)) != 0 ||
-								(accessControlMode & (ACCESS_CONTROL_USER_PRESENCE | ACCESS_CONTROL_DEVICE_PASSCODE | ACCESS_CONTROL_TOUCH_ID_ANY | ACCESS_CONTROL_TOUCH_ID_CURRENT_SET)) != 0) {
+								(accessControlMode & (ACCESS_CONTROL_TOUCH_ID_ANY | ACCESS_CONTROL_TOUCH_ID_CURRENT_SET)) != 0) {
 							spec.setUserAuthenticationRequired(true);
 						}
 						if ((accessControlMode & ACCESS_CONTROL_TOUCH_ID_CURRENT_SET) != 0 && Build.VERSION.SDK_INT >= 24) {
@@ -448,6 +490,10 @@ public class KeychainItemProxy extends KrollProxy {
 						key = generator.generateKey();
 					} else {
 						key = (SecretKey) keyStore.getKey(identifier, null);
+					}
+					if ((accessControlMode & (ACCESS_CONTROL_USER_PRESENCE | ACCESS_CONTROL_DEVICE_PASSCODE)) != 0 && !keyguardManager.isDeviceSecure()) {
+						key = null;
+						Log.e(TAG, "device is not secure, could not generate key!");
 					}
 					cipher = Cipher.getInstance(getCipher());
 					cryptoObject = new FingerprintManager.CryptoObject(cipher);
@@ -460,6 +506,6 @@ public class KeychainItemProxy extends KrollProxy {
 
 	@Override
 	public String getApiName() {
-		return "ti.identity.KeychainItem";
+		return "ti.touchid.KeychainItem";
 	}
 }

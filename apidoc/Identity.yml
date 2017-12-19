@@ -99,6 +99,8 @@ methods:
   - name: deviceCanAuthenticate
     summary: Checks to see if device is configured for biometric authentication.
     description: |
+        On Android this takes into account the `authenticationPolicy`.
+
         Example:
             var Identity = require("ti.identity");
             var result = Identity.deviceCanAuthenticate();
@@ -123,7 +125,7 @@ properties:
         will be used to authenticate using the Touch ID / Face ID sensor only. Using the
         `AUTHENTICATION_POLICY_PASSCODE` constant will still try to authenticate
         with Touch ID / Face ID first and use the passcode as the fallback.
-    platforms: [iphone, ipad]
+    platforms: [iphone, ipad, android]
     since: "6.1.0"
     type: Number
     constants: [Modules.Identity.AUTHENTICATION_POLICY_*]
@@ -159,7 +161,7 @@ properties:
         progressively increased backoff delay.
     type: Number
     permission: read-only
-    platforms: [iphone, ipad]
+    platforms: [iphone, ipad, android]
     since: "6.1.0"
 
   - name: AUTHENTICATION_POLICY_BIOMETRICS
@@ -180,7 +182,7 @@ properties:
         After that, users have to unlock it by entering passcode.
     type: Number
     permission: read-only
-    platforms: [iphone, ipad]
+    platforms: [iphone, ipad, android]
     since: "6.1.0"
 
   - name: BIOMETRY_TYPE_NONE

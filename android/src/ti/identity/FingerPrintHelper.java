@@ -1,5 +1,5 @@
 /**
- * Axway Appcelerator Titanium - Ti.Identity
+ * Axway Appcelerator Titanium - ti.identity
  * Copyright (c) 2017 by Axway. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
@@ -15,11 +15,11 @@ import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyPermanentlyInvalidatedException;
 import android.security.keystore.KeyProperties;
 import android.util.Base64;
+
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollFunction;
 import org.appcelerator.kroll.KrollObject;
 import org.appcelerator.titanium.TiApplication;
-
 import org.appcelerator.kroll.common.Log;
 
 import javax.crypto.Cipher;
@@ -27,6 +27,7 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.util.ArrayList;
 
 public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback {
 
@@ -36,7 +37,7 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 	protected KeyStore mKeyStore;
 	protected KeyGenerator mKeyGenerator;
 	protected Cipher mCipher;
-	protected CancellationSignal mCancellationSignal;
+	private static ArrayList<CancellationSignal> cancellationSignals = new ArrayList<>();
 	protected FingerprintManager.CryptoObject mCryptoObject;
 	private static final String KEY_NAME = "appc_key";
 	private static final String SECRET_MESSAGE = "secret message";
@@ -61,8 +62,14 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 		} catch (KeyStoreException e) {
 			throw new RuntimeException("Failed to get an instance of KeyStore", e);
 		} catch (Exception e) {
-			throw new RuntimeException("Unknown Ti.Identity exception thrown", e);
+			throw new RuntimeException("Unknown Ti.TouchID exception thrown", e);
 		}
+	}
+
+	public static CancellationSignal cancellationSignal() {
+		CancellationSignal signal = new CancellationSignal();
+		cancellationSignals.add(signal);
+		return signal;
 	}
 
 	protected boolean isDeviceSupported() {
@@ -73,9 +80,11 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 	}
 
 	public void stopListening() {
-		if (mCancellationSignal != null) {
-			mCancellationSignal.cancel();
-			mCancellationSignal = null;
+		for (CancellationSignal signal : cancellationSignals) {
+			if (signal != null) {
+				signal.cancel();
+				cancellationSignals.remove(signal);
+			}
 		}
 	}
 
@@ -96,10 +105,10 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
         
 		this.callback = callback;
 		this.krollObject = obj;
-		mCancellationSignal = new CancellationSignal();
+
 		mSelfCancelled = false;
 		mFingerprintManager
-				.authenticate(mCryptoObject, mCancellationSignal, 0 /* flags */, this, null);
+				.authenticate(mCryptoObject, cancellationSignal(), 0 /* flags */, this, null);
 	}
 
 	private void onError(String errMsg) {
@@ -189,27 +198,40 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 		}
 	}
 
-	public KrollDict deviceCanAuthenticate() {
+	public KrollDict deviceCanAuthenticate(int policy) {
 		String error = "";
 		boolean hardwareDetected = mFingerprintManager.isHardwareDetected();
 		boolean hasFingerprints = mFingerprintManager.hasEnrolledFingerprints();
+		boolean hasPasscode = mKeyguardManager.isDeviceSecure();
+		KrollDict response = new KrollDict();
+
 		if (!hardwareDetected) {
 			error = error + "Hardware not detected";
 		}
-		if (!hasFingerprints) {
+		if (policy == TitaniumIdentityModule.AUTHENTICATION_POLICY_PASSCODE && !hasPasscode) {
+			if (error.isEmpty()) {
+				error = error + "Device is not secure, passcode not set";
+			} else {
+				error = error +", and no passcode detected";
+			}
+			response.put("code", TitaniumIdentityModule.ERROR_PASSCODE_NOT_SET);
+		} else if (!hasFingerprints) {
 			if (error.isEmpty()) {
 				error = error + "No enrolled fingerprints";
 			} else {
 				error = error +", and no enrolled fingerprints";
 			}
+			response.put("code", TitaniumIdentityModule.ERROR_TOUCH_ID_NOT_ENROLLED);
 		}
 
-		KrollDict response = new KrollDict();
 		if (error.isEmpty()) {
 			response.put("canAuthenticate", true);
 		} else {
 			response.put("canAuthenticate", false);
 			response.put("error", error);
+			if (!response.containsKey("code")) {
+				response.put("code", TitaniumIdentityModule.ERROR_TOUCH_ID_NOT_AVAILABLE);
+			}
 		}
 		return response;
 	}
