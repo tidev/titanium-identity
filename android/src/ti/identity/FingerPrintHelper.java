@@ -62,7 +62,7 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 		} catch (KeyStoreException e) {
 			throw new RuntimeException("Failed to get an instance of KeyStore", e);
 		} catch (Exception e) {
-			throw new RuntimeException("Unknown Ti.TouchID exception thrown", e);
+			throw new RuntimeException("Unknown Ti.Identity exception thrown", e);
 		}
 	}
 
@@ -176,7 +176,7 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 					KeyProperties.PURPOSE_ENCRYPT |
 							KeyProperties.PURPOSE_DECRYPT)
 					.setBlockModes(KeyProperties.BLOCK_MODE_CBC)
-					.setUserAuthenticationRequired(true)
+					.setUserAuthenticationRequired(TitaniumIdentityModule.getAuthenticationPolicy() == TitaniumIdentityModule.AUTHENTICATION_POLICY_BIOMETRICS)
 					.setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
 					.build());
 			mKeyGenerator.generateKey();
@@ -215,7 +215,7 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 				error = error +", and no passcode detected";
 			}
 			response.put("code", TitaniumIdentityModule.ERROR_PASSCODE_NOT_SET);
-		} else if (!hasFingerprints) {
+		} else if (policy == TitaniumIdentityModule.AUTHENTICATION_POLICY_BIOMETRICS && !hasFingerprints) {
 			if (error.isEmpty()) {
 				error = error + "No enrolled fingerprints";
 			} else {

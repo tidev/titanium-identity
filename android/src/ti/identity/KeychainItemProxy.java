@@ -478,8 +478,7 @@ public class KeychainItemProxy extends KrollProxy {
 								.setBlockModes(blockMode)
 								.setEncryptionPaddings(padding);
 
-						if ((accessibilityMode & (ACCESSIBLE_ALWAYS_THIS_DEVICE_ONLY | ACCESSIBLE_WHEN_PASSCODE_SET_THIS_DEVICE_ONLY)) != 0 ||
-								(accessControlMode & (ACCESS_CONTROL_TOUCH_ID_ANY | ACCESS_CONTROL_TOUCH_ID_CURRENT_SET)) != 0) {
+						if ((accessControlMode & (ACCESS_CONTROL_TOUCH_ID_ANY | ACCESS_CONTROL_TOUCH_ID_CURRENT_SET)) != 0) {
 							spec.setUserAuthenticationRequired(true);
 						}
 						if ((accessControlMode & ACCESS_CONTROL_TOUCH_ID_CURRENT_SET) != 0 && Build.VERSION.SDK_INT >= 24) {
