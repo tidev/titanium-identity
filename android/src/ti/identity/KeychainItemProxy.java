@@ -264,6 +264,14 @@ public class KeychainItemProxy extends KrollProxy {
 			} else if (e instanceof KeyPermanentlyInvalidatedException) {
 				result.put("code", TitaniumIdentityModule.ERROR_KEY_PERMANENTLY_INVALIDATED);
 				result.put("error", "key permantently invalidated!");
+
+				try {
+					if (keyStore != null) {
+						keyStore.deleteEntry(identifier);
+					}
+				} catch (Exception ex) {
+					// do nothing...
+				}
 			} else {
 				result.put("code", -1);
 				result.put("error", e.getMessage());
@@ -329,6 +337,14 @@ public class KeychainItemProxy extends KrollProxy {
 			} else if (e instanceof KeyPermanentlyInvalidatedException) {
 				result.put("code", TitaniumIdentityModule.ERROR_KEY_PERMANENTLY_INVALIDATED);
 				result.put("error", "key permantently invalidated!");
+
+				try {
+					if (keyStore != null) {
+						keyStore.deleteEntry(identifier);
+					}
+				} catch (Exception ex) {
+					// do nothing...
+				}
 			} else {
 				result.put("error", e.getMessage());
 			}
