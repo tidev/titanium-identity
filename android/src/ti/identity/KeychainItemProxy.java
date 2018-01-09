@@ -251,7 +251,7 @@ public class KeychainItemProxy extends KrollProxy {
 
 			// fingerprint authentication
 			if (useFingerprintAuthentication()) {
-				fingerprintManager.authenticate(cryptoObject, FingerPrintHelper.cancellationSignal(), 0, authenticationCallback, null);
+				fingerprintManager.authenticate(cryptoObject, FingerPrintHelper.cancellationSignal(this), 0, authenticationCallback, null);
 			}
 
 		} catch (Exception e) {
@@ -321,7 +321,7 @@ public class KeychainItemProxy extends KrollProxy {
 
 			// fingerprint authentication
 			if (useFingerprintAuthentication()) {
-				fingerprintManager.authenticate(cryptoObject, FingerPrintHelper.cancellationSignal(), 0, authenticationCallback, null);
+				fingerprintManager.authenticate(cryptoObject, FingerPrintHelper.cancellationSignal(this), 0, authenticationCallback, null);
 			}
 
 		} catch (Exception e) {
@@ -427,6 +427,11 @@ public class KeychainItemProxy extends KrollProxy {
 	private boolean exists() {
 		File file = context.getFileStreamPath(identifier + suffix);
 		return file != null && file.exists();
+	}
+
+	public void resetEvents() {
+		eventQueue.clear();
+		eventBusy = false;
 	}
 
 	@Kroll.method

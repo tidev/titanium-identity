@@ -22,9 +22,7 @@ import android.app.Activity;
 import android.hardware.fingerprint.FingerprintManager;
 import android.os.Build;
 
-@Kroll.module(name="Identity", id="ti.identity", propertyAccessors = {
-	TitaniumIdentityModule.PROPERTY_AUTHENTICATION_POLICY
-})
+@Kroll.module(name="Identity", id="ti.identity")
 public class TitaniumIdentityModule extends KrollModule
 {
 	private static final String TAG = "Identity";
@@ -73,8 +71,14 @@ public class TitaniumIdentityModule extends KrollModule
 		init();
 	}
 
-	public static int getAuthenticationPolicy() {
+	@Kroll.getProperty
+	public int getAuthenticationPolicy() {
 		return authenticationPolicy;
+	}
+
+	@Kroll.setProperty
+	public void setAuthenticationPolicy(int policy) {
+		authenticationPolicy = policy;
 	}
 
 	private void init() {

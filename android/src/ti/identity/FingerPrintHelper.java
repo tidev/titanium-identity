@@ -28,6 +28,9 @@ import javax.crypto.SecretKey;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback {
 
@@ -37,7 +40,7 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 	protected KeyStore mKeyStore;
 	protected KeyGenerator mKeyGenerator;
 	protected Cipher mCipher;
-	private static ArrayList<CancellationSignal> cancellationSignals = new ArrayList<>();
+	private static Map<CancellationSignal, KeychainItemProxy> cancellationSignals = new HashMap<>();
 	protected FingerprintManager.CryptoObject mCryptoObject;
 	private static final String KEY_NAME = "appc_key";
 	private static final String SECRET_MESSAGE = "secret message";
@@ -45,6 +48,7 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 	private KrollFunction callback;
 	private KrollObject krollObject;
 	protected boolean mSelfCancelled;
+	private boolean mGeneratedKey = false;
 
 	public FingerPrintHelper() {
 		Activity activity = TiApplication.getAppRootOrCurrentActivity();
@@ -57,7 +61,6 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 			mCipher = Cipher.getInstance(KeyProperties.KEY_ALGORITHM_AES + "/"
 					+ KeyProperties.BLOCK_MODE_CBC + "/"
 					+ KeyProperties.ENCRYPTION_PADDING_PKCS7);
-			createKey();
 			
 		} catch (KeyStoreException e) {
 			throw new RuntimeException("Failed to get an instance of KeyStore", e);
@@ -66,10 +69,14 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 		}
 	}
 
-	public static CancellationSignal cancellationSignal() {
+	public static CancellationSignal cancellationSignal(KeychainItemProxy keychainItemProxy) {
 		CancellationSignal signal = new CancellationSignal();
-		cancellationSignals.add(signal);
+		cancellationSignals.put(signal, keychainItemProxy);
 		return signal;
+	}
+
+	public static CancellationSignal cancellationSignal() {
+		return cancellationSignal(null);
 	}
 
 	protected boolean isDeviceSupported() {
@@ -80,10 +87,19 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 	}
 
 	public void stopListening() {
-		for (CancellationSignal signal : cancellationSignals) {
+		Iterator cancellationSignalIterator = cancellationSignals.entrySet().iterator();
+
+		while (cancellationSignalIterator.hasNext()) {
+			Map.Entry entry = (Map.Entry) cancellationSignalIterator.next();
+			CancellationSignal signal = (CancellationSignal) entry.getKey();
+			KeychainItemProxy keychainItemProxy = (KeychainItemProxy) entry.getValue();
+
 			if (signal != null) {
 				signal.cancel();
-				cancellationSignals.remove(signal);
+				if (keychainItemProxy != null) {
+					keychainItemProxy.resetEvents();
+				}
+				cancellationSignalIterator.remove();
 			}
 		}
 	}
@@ -165,21 +181,27 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 	 * authenticated with fingerprint.
 	 */
 	protected void createKey() {
+		if (mGeneratedKey) {
+			return;
+		}
+
 		// The enrolling flow for fingerprint. This is where you ask the user to set up fingerprint
 		// for your flow. Use of keys is necessary if you need to know if the set of
 		// enrolled fingerprints has changed.
 		try {
 			mKeyStore.load(null);
-			// Set the alias of the entry in Android KeyStore where the key will appear
-			// and the constrains (purposes) in the constructor of the Builder
+
 			mKeyGenerator.init(new KeyGenParameterSpec.Builder(KEY_NAME,
 					KeyProperties.PURPOSE_ENCRYPT |
 							KeyProperties.PURPOSE_DECRYPT)
 					.setBlockModes(KeyProperties.BLOCK_MODE_CBC)
-					.setUserAuthenticationRequired(TitaniumIdentityModule.getAuthenticationPolicy() == TitaniumIdentityModule.AUTHENTICATION_POLICY_BIOMETRICS)
+					.setUserAuthenticationRequired(true)
 					.setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
 					.build());
+
 			mKeyGenerator.generateKey();
+
+			mGeneratedKey = true;
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -187,7 +209,7 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 
 	private boolean initCipher() {
 		try {
-			mKeyStore.load(null);
+			createKey();
 			SecretKey key = (SecretKey) mKeyStore.getKey(KEY_NAME, null);
 			mCipher.init(Cipher.ENCRYPT_MODE, key);
 			return true;
