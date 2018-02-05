@@ -367,19 +367,20 @@ public class KeychainItemProxy extends KrollProxy {
 			fin.skip(ivSize);
 
 			// read decrypted data
-			CipherInputStream cis = new CipherInputStream(new BufferedInputStream(fin), cipher);
+			BufferedInputStream bis = new BufferedInputStream(fin);
 			byte[] buffer = new byte[64];
 			int length = 0;
 			int total = 0;
 			String decrypted = "";
 
 			// since we only encrypt strings, this is acceptable
-			while ((length = cis.read(buffer)) != -1) {
+			while ((length = bis.read(buffer)) != -1) {
 				// obtain decrypted string from buffer
-				String part = new String(buffer, StandardCharsets.UTF_8);
+				byte[] encryptedData = cipher.doFinal(buffer, 0, length);
+				String part = new String(encryptedData, StandardCharsets.UTF_8);
 
 				// remove trailing terminators
-				part = part.substring(0, length).replaceFirst("\u0000+$", "");
+				part = part.replaceFirst("\u0000+$", "");
 
 				// append to decrypted string
 				decrypted += part;
@@ -387,9 +388,9 @@ public class KeychainItemProxy extends KrollProxy {
 			}
 
 			// close stream
-			if (cis != null) {
-				cis.close();
-			}
+			if (bis != null) {
+				bis.close();
+  			}
 			if (fin != null) {
 				fin.close();
 			}
