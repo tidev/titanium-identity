@@ -222,10 +222,19 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 
 	public KrollDict deviceCanAuthenticate(int policy) {
 		String error = "";
-		boolean hardwareDetected = mFingerprintManager.isHardwareDetected();
-		boolean hasFingerprints = mFingerprintManager.hasEnrolledFingerprints();
-		boolean hasPasscode = mKeyguardManager.isDeviceSecure();
 		KrollDict response = new KrollDict();
+
+		boolean hardwareDetected = false;
+		boolean hasFingerprints = false;
+		boolean hasPasscode = false;
+
+		try {
+			hardwareDetected = mFingerprintManager.isHardwareDetected();
+			hasFingerprints = hardwareDetected && mFingerprintManager.hasEnrolledFingerprints();
+			hasPasscode = mKeyguardManager.isDeviceSecure();
+		} catch (Exception e) {
+			// ignore, error gracefully
+		}
 
 		if (!hardwareDetected) {
 			error = error + "Hardware not detected";
