@@ -118,7 +118,6 @@ public class KeychainItemProxy extends KrollProxy {
 			authenticationCallback = new AuthenticationCallback() {
 				@Override
 				public void onAuthenticationError(int errorCode, CharSequence errString) {
-					super.onAuthenticationError(errorCode, errString);
 					if (errorCode != FingerprintManager.FINGERPRINT_ERROR_CANCELED) {
 						doEvents(errorCode, errString.toString());
 					}
@@ -126,19 +125,16 @@ public class KeychainItemProxy extends KrollProxy {
 
 				@Override
 				public void onAuthenticationHelp(int helpCode, CharSequence helpString) {
-					super.onAuthenticationHelp(helpCode, helpString);
 					doEvents(helpCode, helpString.toString());
 				}
 
 				@Override
 				public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
-					super.onAuthenticationSucceeded(result);
 					doEvents(0, null);
 				}
 
 				@Override
 				public void onAuthenticationFailed() {
-					super.onAuthenticationFailed();
 					doEvents(TitaniumIdentityModule.ERROR_AUTHENTICATION_FAILED, "failed to authenticate fingerprint!");
 				}
 			};
@@ -292,9 +288,14 @@ public class KeychainItemProxy extends KrollProxy {
 			fos.write(cipher.getIV());
 
 			// write encrypted data
-			CipherOutputStream cos = new CipherOutputStream(new BufferedOutputStream(fos), cipher);
-			cos.write(value.getBytes(StandardCharsets.UTF_8));
-			cos.close();
+			byte[] data = value.getBytes(StandardCharsets.UTF_8);
+			byte[] encryptedData = cipher.doFinal(data);
+			fos.write(encryptedData);
+
+			// close stream
+			if (fos != null) {
+				fos.close();
+			}
 
 			result.put("success", true);
 			result.put("code", 0);
@@ -314,7 +315,11 @@ public class KeychainItemProxy extends KrollProxy {
 			// read IV
 			byte[] iv = new byte[ivSize];
 			fin.read(iv, 0, iv.length);
-			fin.close();
+			
+			// close stream
+			if (fin != null) {
+				fin.close();
+			}
 
 			// initialize decryption cipher
 			cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(iv));
@@ -379,6 +384,14 @@ public class KeychainItemProxy extends KrollProxy {
 				// append to decrypted string
 				decrypted += part;
 				total += length;
+			}
+
+			// close stream
+			if (cis != null) {
+				cis.close();
+			}
+			if (fin != null) {
+				fin.close();
 			}
 
 			result.put("success", true);
