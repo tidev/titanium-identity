@@ -43,19 +43,19 @@ description: |
     You can you use the <Modules.Identity.invalidate> method to force the user to be prompted every time a
     new authentication is triggered. On iOS 9 and later, this can also be called to cancel a current
     evaluation of an auth-context, e.g. to hide the auth-dialoag.
-    
+
     ## Distinguish between Touch ID and Face ID
-    
+
     Use the <Modules.Identity.biometryType> to receive the currently used biometry type. See an example of
     using the property to create a personalized interface when using Touch ID and Face ID:
 
         var authPhrase = 'Unknown'
-    
-	    if (TiIdentity.biometryType == TiIdentity.BIOMETRY_TYPE_FACE_ID) { // Face ID 
-		    authPhrase = 'Face ID';
-	    } else if (TiIdentity.biometryType == TiIdentity.BIOMETRY_TYPE_TOUCH_ID) { // Touch ID
-		    authPhrase = 'Touch ID';
-	    }
+
+      if (TiIdentity.biometryType == TiIdentity.BIOMETRY_TYPE_FACE_ID) { // Face ID
+        authPhrase = 'Face ID';
+      } else if (TiIdentity.biometryType == TiIdentity.BIOMETRY_TYPE_TOUCH_ID) { // Touch ID
+        authPhrase = 'Touch ID';
+      }
 
     ### Native Keychain Integration
 
@@ -114,6 +114,7 @@ methods:
     summary: Determines if the current device supports Touch ID or Face ID.
     returns:
         type: Boolean
+
 properties:
   - name: authenticationPolicy
     summary: Sets the global authentication policy used in this Touch ID / Face ID context.
@@ -182,7 +183,6 @@ properties:
     permission: read-only
     platforms: [iphone, ipad]
     since: "6.1.0"
-
   - name: BIOMETRY_TYPE_NONE
     summary: The device does not support biometry.
     description: |
