@@ -1,6 +1,6 @@
 name: Modules.Identity.KeychainItem
 summary: Represents a keychain item to communicate with the native iOS keychain.
-platforms: [iphone, ipad]
+platforms: [iphone, ipad, android]
 since: {iphone: "6.1.0", ipad: "6.1.0", android: "6.1.0"}
 extends: Titanium.Module
 description: |
