@@ -5,7 +5,7 @@ since: {iphone: "6.1.0", ipad: "6.1.0", android: "6.1.0"}
 extends: Titanium.Module
 description: |
     The following example demonstrates the basic usage to save, read and delete
-    values with the native iOS keychain and/or Android Keystore:
+    values with the native iOS Keychain and/or Android Keystore:
 
         var Identity = require('ti.identity');
 
@@ -43,7 +43,7 @@ description: |
 
 methods:
   - name: save
-    summary: Saves a new value to the native Keychain.
+    summary: Saves a new value to the native keychain.
     description: |
         The <Modules.Identity.KeychainItem.save> event is triggered when
         a new item is saved. If an error occurs, the `error` key informs you
