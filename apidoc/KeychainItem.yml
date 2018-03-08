@@ -1,11 +1,11 @@
 name: Modules.Identity.KeychainItem
-summary: Represents a keychain item to communicate with the native iOS keychain.
+summary: Represents a keychain item to communicate with the native iOS Keychain and Android Keystore.
 platforms: [iphone, ipad, android]
 since: {iphone: "6.1.0", ipad: "6.1.0", android: "6.1.0"}
 extends: Titanium.Module
 description: |
     The following example demonstrates the basic usage to save, read and delete
-    values with the native iOS keychain:
+    values with the native iOS Keychain and/or Android Keystore:
 
         var Identity = require('ti.identity');
 
@@ -43,7 +43,7 @@ description: |
 
 methods:
   - name: save
-    summary: Saves a new value to the iOS keychain.
+    summary: Saves a new value to the native keychain.
     description: |
         The <Modules.Identity.KeychainItem.save> event is triggered when
         a new item is saved. If an error occurs, the `error` key informs you
@@ -52,7 +52,7 @@ methods:
         On Android this will also overwrite any existing value.
     parameters:
       - name: value
-        summary: The value to be stored in the keychain.
+        summary: The value to be stored in the native keychain.
         type: String
     since: "6.1.0"
 
@@ -61,23 +61,23 @@ methods:
         The <Modules.Identity.KeychainItem.read> event is triggered when
         an item is fetched. If an error occurs, the `error` key informs you
         about the exact error.
-    summary: Reads an existing value to the iOS keychain.
+    summary: Reads an existing value to the native keychain.
     since: "6.1.0"
 
   - name: update
-    summary: Updates an existing value to the iOS keychain.
+    summary: Updates an existing value to the native keychain.
     description: |
         The <Modules.Identity.KeychainItem.update> event is triggered when
         an item is updated. If an error occurs, the `error` key informs you
         about the exact error.
     parameters:
       - name: value
-        summary: The value to be stored in the keychain.
+        summary: The value to be stored in the native keychain.
         type: String
     since: "6.1.0"
 
   - name: reset
-    summary: Resets an existing value from the iOS keychain.
+    summary: Resets an existing value from the native keychain.
     description: |
         The <Modules.Identity.KeychainItem.reset> event is triggered when
         a new item is saved. If an error occurs, the `error` key informs you
