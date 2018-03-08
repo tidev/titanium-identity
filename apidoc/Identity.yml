@@ -49,13 +49,13 @@ description: |
     Use the <Modules.Identity.biometryType> to receive the currently used biometry type. See an example of
     using the property to create a personalized interface when using Touch ID and Face ID:
 
-        var authPhrase = 'Unknown'
+        var authPhrase = 'Unknown';
 
-      if (TiIdentity.biometryType == TiIdentity.BIOMETRY_TYPE_FACE_ID) { // Face ID
-        authPhrase = 'Face ID';
-      } else if (TiIdentity.biometryType == TiIdentity.BIOMETRY_TYPE_TOUCH_ID) { // Touch ID
-        authPhrase = 'Touch ID';
-      }
+        if (TiIdentity.biometryType === TiIdentity.BIOMETRY_TYPE_FACE_ID) { // Face ID
+            authPhrase = 'Face ID';
+        } else if (TiIdentity.biometryType === TiIdentity.BIOMETRY_TYPE_TOUCH_ID) { // Touch ID
+            authPhrase = 'Touch ID';
+        }
 
     ### Native Keychain Integration
 
