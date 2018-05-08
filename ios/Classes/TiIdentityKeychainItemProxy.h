@@ -12,6 +12,7 @@
   @private
   APSKeychainWrapper *keychainItem;
 
+  NSString *service;
   NSString *identifier;
   NSString *accessGroup;
   NSString *accessibilityMode;

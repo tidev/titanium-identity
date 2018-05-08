@@ -21,6 +21,7 @@
     accessibilityMode = [[params objectForKey:@"accessibilityMode"] copy];
     accessControlMode = [params objectForKey:@"accessControlMode"];
     options = [params objectForKey:@"options"];
+    service = [[params objectForKey:@"service"] copy] ?: @"ti.touchid"; // Keep "ti.touchid" default for backwards compatibility
   }
   return self;
 }
@@ -30,7 +31,7 @@
   if (!keychainItem) {
 
     keychainItem = [[APSKeychainWrapper alloc] initWithIdentifier:identifier
-                                                          service:@"ti.touchid" // Keep for backwards compatibility
+                                                          service:service
                                                       accessGroup:accessGroup
                                                 accessibilityMode:(CFStringRef)accessibilityMode
                                                 accessControlMode:[self formattedAccessControlFlags]

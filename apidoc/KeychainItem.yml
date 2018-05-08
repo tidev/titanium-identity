@@ -30,6 +30,7 @@ description: |
          // Create a keychain item
          var keychainItem = Identity.createKeychainItem({
            identifier: 'mypassword',
+           service: 'my_service', // iOS only. Defaults to 'ti.touchid' for backwards compatibility
            accessGroup: '<YOUR-TEAM-ID>.com.appc.identitytest',
            accessibilityMode: Identity.ACCESSIBLE_WHEN_PASSCODE_SET_THIS_DEVICE_ONLY,
            accessControlMode: Identity.ACCESS_CONTROL_TOUCH_ID_ANY,
@@ -122,6 +123,16 @@ properties:
       summary: |
           Required identifier to create or receive a keychain item. The identifier
           cannot contain alphanumeric characters or it might be rejected by the keychain.
+      type: String
+      
+    - name: service
+      platforms: [iphone, ipad]
+      optional: false
+      summary: |
+          A key whose value is a string indicating the item's service. Defaults
+          to `ti.touchid` if not set for backwards compatibility with the deprecated
+          Ti.TouchID module. This property is required when using app extensions
+          and should also include the app-prefix (aka team-ID).
       type: String
 
     - name: accessGroup
