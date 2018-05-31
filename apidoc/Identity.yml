@@ -57,7 +57,7 @@ description: |
             authPhrase = 'Touch ID';
         }
         
-    ## Face ID (IOS only)
+    ## Face ID Requirements (iOS only)
 
     For Face ID to work properly, you need to add a **`<key>`** item to the
     **`<plist>`** element of your `tiapp.xml` file:
@@ -67,10 +67,10 @@ description: |
           <ios>
             ...
             <plist>
-                <dict>
-                    <key>NSFaceIDUsageDescription</key>
-                    <string>Why you need Face Id.</string>
-                </dict>
+              <dict>
+                <key>NSFaceIDUsageDescription</key>
+                <string>Why you need Face ID.</string>
+              </dict>
             </plist>
             ...
           </ios>
