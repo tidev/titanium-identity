@@ -56,6 +56,26 @@ description: |
         } else if (TiIdentity.biometryType === TiIdentity.BIOMETRY_TYPE_TOUCH_ID) { // Touch ID
             authPhrase = 'Touch ID';
         }
+        
+    ## Face ID Requirements (iOS only)
+
+    For Face ID to work properly, you need to add a **`<key>`** item to the
+    **`<plist>`** element of your `tiapp.xml` file:
+
+        <ti:app>
+          ...
+          <ios>
+            ...
+            <plist>
+              <dict>
+                <key>NSFaceIDUsageDescription</key>
+                <string>Why you need Face ID.</string>
+              </dict>
+            </plist>
+            ...
+          </ios>
+          ...
+        </ti:app>
 
     ### Native Keychain Integration
 
