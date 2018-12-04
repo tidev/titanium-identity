@@ -76,7 +76,7 @@ public class TitaniumIdentityModule extends KrollModule
 		return authenticationPolicy;
 	}
 
-	@Kroll.setProperty
+	@Kroll.method
 	public void setAuthenticationPolicy(int policy) {
 		authenticationPolicy = policy;
 	}
