@@ -114,30 +114,32 @@ public class KeychainItemProxy extends KrollProxy {
 			keyguardManager = context.getSystemService(KeyguardManager.class);
 
 			// fingerprint authentication
-			fingerprintManager = context.getSystemService(FingerprintManager.class);
-			authenticationCallback = new AuthenticationCallback() {
-				@Override
-				public void onAuthenticationError(int errorCode, CharSequence errString) {
-					if (errorCode != FingerprintManager.FINGERPRINT_ERROR_CANCELED) {
-						doEvents(errorCode, errString.toString());
+			if (Build.VERSION.SDK_INT >= 23) {
+				fingerprintManager = context.getSystemService(FingerprintManager.class);
+				authenticationCallback = new AuthenticationCallback() {
+					@Override
+					public void onAuthenticationError(int errorCode, CharSequence errString) {
+						if (errorCode != FingerprintManager.FINGERPRINT_ERROR_CANCELED) {
+							doEvents(errorCode, errString.toString());
+						}
 					}
-				}
 
-				@Override
-				public void onAuthenticationHelp(int helpCode, CharSequence helpString) {
-					doEvents(helpCode, helpString.toString());
-				}
+					@Override
+					public void onAuthenticationHelp(int helpCode, CharSequence helpString) {
+						doEvents(helpCode, helpString.toString());
+					}
 
-				@Override
-				public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
-					doEvents(0, null);
-				}
+					@Override
+					public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
+						doEvents(0, null);
+					}
 
-				@Override
-				public void onAuthenticationFailed() {
-					doEvents(TitaniumIdentityModule.ERROR_AUTHENTICATION_FAILED, "failed to authenticate fingerprint!");
-				}
-			};
+					@Override
+					public void onAuthenticationFailed() {
+						doEvents(TitaniumIdentityModule.ERROR_AUTHENTICATION_FAILED, "failed to authenticate fingerprint!");
+					}
+				};
+			}
 
 			// load Android key store
 			keyStore = KeyStore.getInstance("AndroidKeyStore");
@@ -246,7 +248,7 @@ public class KeychainItemProxy extends KrollProxy {
 			cipher.init(Cipher.ENCRYPT_MODE, key);
 
 			// fingerprint authentication
-			if (useFingerprintAuthentication()) {
+			if (fingerprintManager != null && useFingerprintAuthentication()) {
 				fingerprintManager.authenticate(cryptoObject, FingerPrintHelper.cancellationSignal(this), 0, authenticationCallback, null);
 			}
 
@@ -325,7 +327,7 @@ public class KeychainItemProxy extends KrollProxy {
 			cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(iv));
 
 			// fingerprint authentication
-			if (useFingerprintAuthentication()) {
+			if (fingerprintManager != null && useFingerprintAuthentication()) {
 				fingerprintManager.authenticate(cryptoObject, FingerPrintHelper.cancellationSignal(this), 0, authenticationCallback, null);
 			}
 
@@ -530,7 +532,9 @@ public class KeychainItemProxy extends KrollProxy {
 						Log.e(TAG, "device is not secure, could not generate key!");
 					}
 					cipher = Cipher.getInstance(getCipher());
-					cryptoObject = new FingerprintManager.CryptoObject(cipher);
+					if (fingerprintManager != null) {
+						cryptoObject = new FingerprintManager.CryptoObject(cipher);
+					}
 				} catch (Exception e) {
 					Log.e(TAG, e.toString());
 				}
