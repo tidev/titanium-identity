@@ -209,9 +209,11 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 
 	private boolean initCipher() {
 		try {
-			createKey();
-			SecretKey key = (SecretKey) mKeyStore.getKey(KEY_NAME, null);
-			mCipher.init(Cipher.ENCRYPT_MODE, key);
+			if (!mGeneratedKey) {
+				createKey();
+				SecretKey key = (SecretKey) mKeyStore.getKey(KEY_NAME, null);
+				mCipher.init(Cipher.ENCRYPT_MODE, key);
+			}
 			return true;
 		} catch (KeyPermanentlyInvalidatedException e) {
 			return false;
