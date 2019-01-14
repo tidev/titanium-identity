@@ -197,10 +197,7 @@ APSErrorDomain const APSKeychainWrapperErrorDomain = @"com.appcelerator.keychain
     baseAttributes = [NSMutableDictionary dictionaryWithDictionary:@{
         (id)kSecClass: (id)kSecClassGenericPassword,
         (id)kSecAttrAccount: _identifier,
-        (id)kSecAttrService: _service,
-        (id)kSecAttrAccount: @"",
-        (id)kSecAttrLabel: @"",
-        (id)kSecAttrDescription: @""
+        (id)kSecAttrService: _service
     }];
     
     // Apply access-control if both accessibility-mode and access-control-mode provided
