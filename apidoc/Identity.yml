@@ -87,6 +87,13 @@ description: |
     `<TITANIUM_SDK_HOME>/modules/iphone/ti.identity/<VERSION>/example/` folder.
 
 methods:
+  - name: createKeychainItem
+    summary: Creat KeychainItem.
+    parameters:
+      - name: params
+        summary: Dictionary of arguments passed to the method.
+        type: KeychainItemType
+
   - name: authenticate
     summary: Initiates the biometric authentication process.
     description: |
