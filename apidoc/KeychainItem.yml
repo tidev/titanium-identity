@@ -43,6 +43,13 @@ description: |
          });
 
 methods:
+  - name: createKeychainItem
+    summary: Creat KeychainItem.
+    parameters:
+      - name: params
+        summary: Dictionary of arguments passed to the method.
+        type: KeychainItemType
+
   - name: save
     summary: Saves a new value to the native keychain.
     description: |
