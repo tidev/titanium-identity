@@ -212,6 +212,23 @@ properties:
     permission: read-only
     platforms: [iphone, ipad, android]
     since: "6.1.0"
+
+  - name: AUTHENTICATION_POLICY_BIOMETRICS_OR_WATCH
+    summary: Device owner was authenticated using a biometric method or the Apple Watch.
+    type: Number
+    permission: read-only
+    platforms: [iphone, ipad]
+    osver: {ios: {min: "13.0"}}
+    since: "9.0.0"
+
+  - name: AUTHENTICATION_POLICY_WATCH
+    summary: Device owner was authenticated using the Apple Watch.
+    type: Number
+    permission: read-only
+    platforms: [iphone, ipad]
+    osver: {ios: {min: "13.0"}}
+    since: "9.0.0"
+
   - name: BIOMETRY_TYPE_NONE
     summary: The device does not support biometry.
     description: |
