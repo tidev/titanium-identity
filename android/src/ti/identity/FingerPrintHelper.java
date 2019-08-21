@@ -12,6 +12,7 @@ import android.app.KeyguardManager;
 import android.os.Build;
 import android.os.CancellationSignal;
 import android.security.keystore.KeyGenParameterSpec;
+import android.security.keystore.KeyPermanentlyInvalidatedException;
 import android.security.keystore.KeyProperties;
 import android.util.Base64;
 
@@ -35,6 +36,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.Optional;
 
 public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 {
@@ -140,7 +142,6 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 			} catch (Exception e) {
 				Log.e(TAG, "Unable to initialize cipher");
 			}
-
 			this.callback = callback;
 			this.krollObject = obj;
 
@@ -154,7 +155,6 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 			final BiometricPrompt prompt =
 				new BiometricPrompt((FragmentActivity) TiApplication.getAppCurrentActivity(), executor, this);
 			prompt.authenticate(promptInfo.build(), mCryptoObject);
-
 		} else if (canUseDeviceCredentials()) {
 			this.callback = callback;
 			this.krollObject = obj;
@@ -251,12 +251,31 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 
 	private boolean initCipher() throws Exception
 	{
-		if (!mGeneratedKey) {
+		SecretKey key = null;
+		try {
 			createKey();
-			SecretKey key = (SecretKey) mKeyStore.getKey(KEY_NAME, null);
+			key = (SecretKey) mKeyStore.getKey(KEY_NAME, null);
 			mCipher.init(Cipher.ENCRYPT_MODE, key);
+			return true;
+		} catch (KeyPermanentlyInvalidatedException e) {
+			processInvalidKey(key);
+			return true;
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to init Cipher", e);
 		}
-		return true;
+	}
+
+	private void processInvalidKey(SecretKey key)
+	{
+		try {
+			mGeneratedKey = false;
+			mKeyStore.deleteEntry(KEY_NAME);
+			createKey();
+			key = (SecretKey) mKeyStore.getKey(KEY_NAME, null);
+			mCipher.init(Cipher.ENCRYPT_MODE, key);
+		} catch (Exception e) {
+			Log.e(TAG, e.getMessage());
+		}
 	}
 
 	@SuppressWarnings("NewApi")
