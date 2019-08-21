@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 
 public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback {
 
@@ -116,9 +117,13 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 				Log.e(TAG, "Unable to initialize cipher");
 			}
 		} catch (Exception e) {
-			Log.e(TAG, "Unable to initialize cipher");
+			Log.e(TAG, "Exception on initialize cipher "+ e.getMessage());
 		}
-        
+        performAuth(callback, obj);
+
+	}
+
+	private void performAuth(KrollFunction callback, KrollObject obj) {
 		this.callback = callback;
 		this.krollObject = obj;
 
@@ -208,15 +213,29 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 	}
 
 	private boolean initCipher() {
+		SecretKey key = null;
 		try {
 			createKey();
-			SecretKey key = (SecretKey) mKeyStore.getKey(KEY_NAME, null);
+			key = (SecretKey) mKeyStore.getKey(KEY_NAME, null);
 			mCipher.init(Cipher.ENCRYPT_MODE, key);
 			return true;
 		} catch (KeyPermanentlyInvalidatedException e) {
-			return false;
+			processInvaidKey(key);
+			return true;
 		} catch (Exception e) {
-			throw new RuntimeException("Failed to init Cipher", e);
+			throw new RuntimeException("Failed to init Cipher", e);		
+		}
+	}
+
+	private void processInvaidKey(SecretKey key){
+		try {
+			mGeneratedKey = false;
+			mKeyStore.deleteEntry(KEY_NAME);
+			createKey();
+			key = (SecretKey) mKeyStore.getKey(KEY_NAME, null);
+			mCipher.init(Cipher.ENCRYPT_MODE, key);
+		} catch (Exception e) {
+			Log.e(TAG, e.getMessage());
 		}
 	}
 
