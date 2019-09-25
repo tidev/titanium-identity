@@ -540,6 +540,6 @@ public class KeychainItemProxy extends KrollProxy {
 
 	@Override
 	public String getApiName() {
-		return "ti.touchid.KeychainItem";
+		return "Ti.Identity.KeychainItem";
 	}
 }
