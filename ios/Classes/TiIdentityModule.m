@@ -25,6 +25,11 @@
   return @"ti.identity";
 }
 
+- (NSString *)apiName
+{
+  return @"Ti.Identity";
+}
+
 #pragma mark Lifecycle
 
 - (void)startup
