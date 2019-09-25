@@ -1,0 +1,45 @@
+{
+	"name": "@titanium/ti.identity",
+	"version": "2.1.0",
+	"description": "A collection of API's to authenticate with your device: Keychain/Keystore, Touch ID and Face ID (iOS only)",
+	"scripts": {
+		"lint": "npm run lint:docs",
+		"lint:docs": "tdoc-validate -w Titanium.Proxy,Titanium.Module apidoc",
+		"test": "npm run lint && npm run test:unit",
+		"test:unit": "karma start test/unit/karma.unit.config.js",
+		"test:android": "npm run test:unit -- --browsers android",
+		"test:ios": "npm run test:unit -- --browsers ios"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/appcelerator-modules/titanium-identity.git"
+	},
+	"bugs": {
+		"url": "https://github.com/appcelerator-modules/titanium-identity/issues"
+	},
+	"homepage": "https://github.com/appcelerator-modules/titanium-identity#readme",
+	"titanium": {
+		"type": "native-module",
+		"platform": [
+			"android",
+			"ios"
+		]
+	},
+	"devDependencies": {
+		"@seadub/danger-plugin-dependencies": "^0.1.0",
+		"@seadub/danger-plugin-junit": "^0.1.2",
+		"danger": "^7.1.0",
+		"eslint": "^5.10.0",
+		"eslint-config-axway": "^4.1.1",
+		"eslint-plugin-jasmine": "^2.10.1",
+		"jasmine-core": "^3.3.0",
+		"karma": "^4.0.0",
+		"karma-jasmine": "^2.0.1",
+		"karma-junit-reporter": "^1.2.0",
+		"karma-mocha-reporter": "^2.2.5",
+		"karma-titanium-launcher": "^0.7.5",
+		"socket.io": "^2.2.0",
+		"titanium-docgen": "^0.2.0"
+	},
+	"dependencies": {}
+}
