@@ -246,7 +246,7 @@ properties:
     summary: Constant indicating that the authentication was not successful.
     type: Number
     permission: read-only
-    platforms: [iphone, ipad]
+    platforms: [iphone, ipad, android]
 
   - name: ERROR_PASSCODE_NOT_SET
     summary: Constant indicating that the passcode is not set for the device.
@@ -314,7 +314,7 @@ properties:
          and later.
     type: Number
     permission: read-only
-    platforms: [iphone, ipad]
+    platforms: [iphone, ipad, android]
 
   - name: ERROR_BIOMETRY_LOCKOUT
     summary: |
@@ -339,7 +339,6 @@ properties:
     type: Number
     osver: {ios: {min: "11.0"}}
     permission: read-only
-
     platforms: [iphone, ipad]
 
   - name: ACCESSIBLE_WHEN_UNLOCKED
@@ -348,7 +347,7 @@ properties:
         recommended for items that only need be accesible while the application
         is in the foreground.  Items with this attribute will migrate to a new
         device when using encrypted backups.
-    type: Number
+    type: String
     permission: read-only
     platforms: [iphone, ipad]
     since: "6.1.0"
@@ -359,7 +358,7 @@ properties:
         a restart.  This is recommended for items that need to be accesible by
         background applications. Items with this attribute will migrate to a new
         device when using encrypted backups.
-    type: Number
+    type: String
     permission: read-only
     platforms: [iphone, ipad]
     since: "6.1.0"
@@ -369,7 +368,9 @@ properties:
         Item data can always be accessed regardless of the lock state of the device.
         This is not recommended for anything except system use. Items with this
         attribute will migrate to a new device when using encrypted backups.
-    type: Number
+    description: |
+        Value is a Number on Android, a String on iOS.
+    type: [Number, String]
     permission: read-only
     platforms: [iphone, ipad, android]
     since: "6.1.0"
@@ -384,7 +385,9 @@ properties:
          will be missing. No items can be stored in this class on devices
          without a passcode. Disabling the device passcode will cause all
          items in this class to be deleted.
-    type: Number
+    description: |
+        Value is a Number on Android, a String on iOS.
+    type: [Number, String]
     permission: read-only
     platforms: [iphone, ipad, android]
     since: "6.1.0"
@@ -396,7 +399,7 @@ properties:
         is in the foreground. Items with this attribute will never migrate to a
         new device, so after a backup is restored to a new device, these items
         will be missing.
-    type: Number
+    type: String
     permission: read-only
     platforms: [iphone, ipad]
     since: "6.1.0"
@@ -408,7 +411,7 @@ properties:
         background applications. Items with this attribute will never migrate to
         a new device, so after a backup is restored to a new device these items
         will be missing.
-    type: Number
+    type: String
     permission: read-only
     platforms: [iphone, ipad]
     since: "6.1.0"
@@ -419,7 +422,9 @@ properties:
         This option is not recommended for anything except system use. Items with
         this attribute will never migrate to a new device, so after a backup is
         restored to a new device, these items will be missing.
-    type: Number
+    description: |
+        Value is a Number on Android, a String on iOS.
+    type: [Number, String]
     permission: read-only
     platforms: [iphone, ipad, android]
     since: "6.1.0"
