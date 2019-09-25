@@ -164,4 +164,9 @@ public class TitaniumIdentityModule extends KrollModule
 			mfingerprintHelper.stopListening();
 		}
 	}
+
+	@Override
+	public String getApiName() {
+		return "Ti.Identity";
+	}
 }
