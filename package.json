@@ -1,6 +1,6 @@
 {
 	"name": "@titanium/ti.identity",
-	"version": "2.1.0",
+	"version": "2.1.1",
 	"description": "A collection of API's to authenticate with your device: Keychain/Keystore, Touch ID and Face ID (iOS only)",
 	"scripts": {
 		"lint": "npm run lint:docs",
