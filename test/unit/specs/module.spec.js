@@ -1,4 +1,6 @@
 const isIOS = Ti.Platform.osname === 'iphone' || Ti.Platform.osname === 'ipad';
+const isIOS13 = isIOS && parseInt(Ti.Platform.version.split('.')[0]) >= 13;
+
 let Identity;
 
 describe('ti.identity', () => {
@@ -22,6 +24,16 @@ describe('ti.identity', () => {
 				it('AUTHENTICATION_POLICY_BIOMETRICS', () => {
 					expect(Identity.AUTHENTICATION_POLICY_BIOMETRICS).toEqual(jasmine.any(Number));
 				});
+
+				if (isIOS13) {
+					it('AUTHENTICATION_POLICY_BIOMETRICS_OR_WATCH', () => {
+						expect(Identity.AUTHENTICATION_POLICY_BIOMETRICS_OR_WATCH).toEqual(jasmine.any(Number));
+					});
+
+					it('AUTHENTICATION_POLICY_WATCH', () => {
+						expect(Identity.AUTHENTICATION_POLICY_WATCH).toEqual(jasmine.any(Number));
+					});
+				}
 			});
 
 			if (isIOS) {
