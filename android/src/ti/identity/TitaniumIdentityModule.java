@@ -72,11 +72,13 @@ public class TitaniumIdentityModule extends KrollModule
 	}
 
 	@Kroll.getProperty
+	@Kroll.method
 	public int getAuthenticationPolicy() {
 		return authenticationPolicy;
 	}
 
 	@Kroll.setProperty
+	@Kroll.method
 	public void setAuthenticationPolicy(int policy) {
 		authenticationPolicy = policy;
 	}
@@ -163,5 +165,10 @@ public class TitaniumIdentityModule extends KrollModule
 		if (mfingerprintHelper != null) {
 			mfingerprintHelper.stopListening();
 		}
+	}
+
+	@Override
+	public String getApiName() {
+		return "Ti.Identity";
 	}
 }

@@ -105,10 +105,10 @@ events:
     summary: Triggered when a new keychain item is updated (or an error occurred).
     since: "6.1.0"
   - name: read
-    summary: Triggered when a new keychain item is red (or an error occurred).
+    summary: Triggered when a new keychain item is read (or an error occurred).
     since: "6.1.0"
   - name: reset
-    summary: Triggered when a new keychain item is resetted (or an error occurred).
+    summary: Triggered when a new keychain item is reset (or an error occurred).
     since: "6.1.0"
 
 ---
