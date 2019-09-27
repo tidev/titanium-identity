@@ -219,7 +219,7 @@ properties:
     permission: read-only
     platforms: [iphone, ipad]
     osver: {ios: {min: "13.0"}}
-    since: "8.2.0"
+    since: "8.3.0"
 
   - name: AUTHENTICATION_POLICY_WATCH
     summary: Device owner was authenticated using the Apple Watch.
@@ -227,7 +227,7 @@ properties:
     permission: read-only
     platforms: [iphone, ipad]
     osver: {ios: {min: "13.0"}}
-    since: "8.2.0"
+    since: "8.3.0"
 
   - name: BIOMETRY_TYPE_NONE
     summary: The device does not support biometry.
