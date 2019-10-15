@@ -41,18 +41,19 @@
 		"karma-junit-reporter": "^1.2.0",
 		"karma-mocha-reporter": "^2.2.5",
 		"karma-titanium-launcher": "^0.7.5",
+		"lint-staged": "^9.4.2",
 		"socket.io": "^2.2.0",
 		"titanium-docgen": "^0.2.0"
 	},
 	"dependencies": {},
 	"husky": {
 		"hooks": {
-		  "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+			"commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
 		}
 	},
 	"commitlint": {
 		"extends": [
-		  "@commitlint/config-conventional"
+			"@commitlint/config-conventional"
 		]
 	}
 }
