@@ -1,5 +1,5 @@
 {
-	"name": "@titanium/ti.identity",
+	"name": "@titanium-sdk/ti.identity",
 	"version": "2.1.1",
 	"description": "A collection of API's to authenticate with your device: Keychain/Keystore, Touch ID and Face ID (iOS only)",
 	"scripts": {
