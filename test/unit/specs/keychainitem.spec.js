@@ -1,3 +1,4 @@
+const isIOS = Ti.Platform.osname === 'iphone' || Ti.Platform.osname === 'ipad';
 const Identity = require('ti.identity');
 
 let KeychainItem;
@@ -5,6 +6,7 @@ let KeychainItem;
 describe('ti.identity.KeychainItem', () => {
 	it('can be created', () => {
 		KeychainItem = Identity.createKeychainItem({ identifier: 'password' });
+
 		expect(KeychainItem).toBeDefined();
 	});
 
@@ -68,6 +70,7 @@ describe('ti.identity.KeychainItem', () => {
 				function foo () {
 					KeychainItem.save();
 				}
+
 				expect(foo).toThrow();
 			});
 		});
@@ -138,6 +141,7 @@ describe('ti.identity.KeychainItem', () => {
 				function foo () {
 					KeychainItem.fetchExistence();
 				}
+
 				expect(foo).toThrow();
 			});
 
@@ -145,7 +149,7 @@ describe('ti.identity.KeychainItem', () => {
 				// save a value, then check existence
 				function save(obj) {
 					KeychainItem.removeEventListener('save', save);
-					
+
 					KeychainItem.fetchExistence(e => {
 						try {
 							expect(e.exists).toEqual(true);
@@ -158,7 +162,7 @@ describe('ti.identity.KeychainItem', () => {
 
 				KeychainItem.addEventListener('save', save);
 				KeychainItem.save('s3cr3t_p4$$w0rd');
-				
+
 			});
 
 			it('returns false for exists after being reset', finish => {
@@ -176,7 +180,7 @@ describe('ti.identity.KeychainItem', () => {
 				}
 				KeychainItem.addEventListener('reset', reset);
 				KeychainItem.reset();
-				
+
 			});
 		});
 	});

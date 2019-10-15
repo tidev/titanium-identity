@@ -1,9 +1,10 @@
-const isIOS = Ti.Platform.osname == 'iphone' || Ti.Platform.osname == 'ipad';
+const isIOS = Ti.Platform.osname === 'iphone' || Ti.Platform.osname === 'ipad';
 let Identity;
 
 describe('ti.identity', () => {
 	it('can be required', () => {
 		Identity = require('ti.identity');
+
 		expect(Identity).toBeDefined();
 	});
 
@@ -68,7 +69,7 @@ describe('ti.identity', () => {
 					it('ERROR_USER_FALLBACK', () => {
 						expect(Identity.ERROR_USER_FALLBACK).toEqual(jasmine.any(Number));
 					});
-	
+
 					it('ERROR_APP_CANCELLED', () => {
 						expect(Identity.ERROR_APP_CANCELLED).toEqual(jasmine.any(Number));
 					});
@@ -80,11 +81,11 @@ describe('ti.identity', () => {
 					it('ERROR_BIOMETRY_LOCKOUT', () => {
 						expect(Identity.ERROR_BIOMETRY_LOCKOUT).toEqual(jasmine.any(Number));
 					});
-	
+
 					it('ERROR_BIOMETRY_NOT_AVAILABLE', () => {
 						expect(Identity.ERROR_BIOMETRY_NOT_AVAILABLE).toEqual(jasmine.any(Number));
 					});
-	
+
 					it('ERROR_BIOMETRY_NOT_ENROLLED', () => {
 						expect(Identity.ERROR_BIOMETRY_NOT_ENROLLED).toEqual(jasmine.any(Number));
 					});
@@ -100,7 +101,7 @@ describe('ti.identity', () => {
 					it('ACCESSIBLE_WHEN_UNLOCKED', () => {
 						expect(Identity.ACCESSIBLE_WHEN_UNLOCKED).toEqual('ak');
 					});
-					
+
 					it('ACCESSIBLE_AFTER_FIRST_UNLOCK', () => {
 						expect(Identity.ACCESSIBLE_AFTER_FIRST_UNLOCK).toEqual('ck');
 					});
