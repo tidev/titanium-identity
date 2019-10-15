@@ -3,6 +3,7 @@
 	"version": "2.1.1",
 	"description": "A collection of API's to authenticate with your device: Keychain/Keystore, Touch ID and Face ID (iOS only)",
 	"scripts": {
+		"commit": "git-cz",
 		"lint": "npm run lint:docs",
 		"lint:docs": "tdoc-validate -w Titanium.Proxy,Titanium.Module apidoc",
 		"test": "npm run lint && npm run test:unit",
@@ -50,6 +51,7 @@
 	"dependencies": {},
 	"husky": {
 		"hooks": {
+			"pre-commit": "lint-staged",
 			"commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
 		}
 	},
@@ -68,5 +70,10 @@
 		"extends": [
 			"@commitlint/config-conventional"
 		]
+	},
+	"config": {
+		"commitizen": {
+			"path": "./node_modules/cz-conventional-changelog"
+		}
 	}
 }
