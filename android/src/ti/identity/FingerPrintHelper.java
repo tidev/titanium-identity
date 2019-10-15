@@ -32,7 +32,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback {
+public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
+{
 
 	protected KeyguardManager mKeyguardManager;
 	protected FingerprintManager mFingerprintManager;
@@ -50,18 +51,18 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 	protected boolean mSelfCancelled;
 	private boolean mGeneratedKey = false;
 
-	public FingerPrintHelper() {
+	public FingerPrintHelper()
+	{
 		Activity activity = TiApplication.getAppRootOrCurrentActivity();
 		mFingerprintManager = activity.getSystemService(FingerprintManager.class);
 		mKeyguardManager = activity.getSystemService(KeyguardManager.class);
-		
+
 		try {
 			mKeyStore = KeyStore.getInstance("AndroidKeyStore");
 			mKeyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
-			mCipher = Cipher.getInstance(KeyProperties.KEY_ALGORITHM_AES + "/"
-					+ KeyProperties.BLOCK_MODE_CBC + "/"
-					+ KeyProperties.ENCRYPTION_PADDING_PKCS7);
-			
+			mCipher = Cipher.getInstance(KeyProperties.KEY_ALGORITHM_AES + "/" + KeyProperties.BLOCK_MODE_CBC + "/"
+										 + KeyProperties.ENCRYPTION_PADDING_PKCS7);
+
 		} catch (KeyStoreException e) {
 			throw new RuntimeException("Failed to get an instance of KeyStore", e);
 		} catch (Exception e) {
@@ -69,24 +70,28 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 		}
 	}
 
-	public static CancellationSignal cancellationSignal(KeychainItemProxy keychainItemProxy) {
+	public static CancellationSignal cancellationSignal(KeychainItemProxy keychainItemProxy)
+	{
 		CancellationSignal signal = new CancellationSignal();
 		cancellationSignals.put(signal, keychainItemProxy);
 		return signal;
 	}
 
-	public static CancellationSignal cancellationSignal() {
+	public static CancellationSignal cancellationSignal()
+	{
 		return cancellationSignal(null);
 	}
 
-	protected boolean isDeviceSupported() {
+	protected boolean isDeviceSupported()
+	{
 		if (Build.VERSION.SDK_INT >= 23 && mFingerprintManager != null) {
 			return mFingerprintManager.isHardwareDetected();
 		}
 		return false;
 	}
 
-	public void stopListening() {
+	public void stopListening()
+	{
 		Iterator cancellationSignalIterator = cancellationSignals.entrySet().iterator();
 
 		while (cancellationSignalIterator.hasNext()) {
@@ -104,11 +109,12 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 		}
 	}
 
-	public void startListening(KrollFunction callback, KrollObject obj) {
+	public void startListening(KrollFunction callback, KrollObject obj)
+	{
 		if (!(mFingerprintManager.isHardwareDetected() && mFingerprintManager.hasEnrolledFingerprints())) {
 			return;
 		}
-        
+
 		try {
 			if (initCipher()) {
 				mCryptoObject = new FingerprintManager.CryptoObject(mCipher);
@@ -118,16 +124,16 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 		} catch (Exception e) {
 			Log.e(TAG, "Unable to initialize cipher");
 		}
-        
+
 		this.callback = callback;
 		this.krollObject = obj;
 
 		mSelfCancelled = false;
-		mFingerprintManager
-				.authenticate(mCryptoObject, cancellationSignal(), 0 /* flags */, this, null);
+		mFingerprintManager.authenticate(mCryptoObject, cancellationSignal(), 0 /* flags */, this, null);
 	}
 
-	private void onError(String errMsg) {
+	private void onError(String errMsg)
+	{
 		if (callback != null && krollObject != null) {
 			KrollDict dict = new KrollDict();
 			dict.put("success", false);
@@ -140,7 +146,8 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 	 * Tries to encrypt some data with the generated key in {@link #createKey} which is
 	 * only works if the user has just authenticated via fingerprint.
 	 */
-	private void tryEncrypt() {
+	private void tryEncrypt()
+	{
 		try {
 			byte[] encrypted = mCipher.doFinal(SECRET_MESSAGE.getBytes());
 			if (callback != null && krollObject != null) {
@@ -155,24 +162,26 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 	}
 
 	@Override
-	public void onAuthenticationError(int errMsgId, CharSequence errString) {
+	public void onAuthenticationError(int errMsgId, CharSequence errString)
+	{
 		onError(errString.toString());
 	}
 
 	@Override
-	public void onAuthenticationHelp(int helpMsgId, CharSequence helpString) {
+	public void onAuthenticationHelp(int helpMsgId, CharSequence helpString)
+	{
 		Log.w(TAG, helpString.toString());
-
 	}
 
 	@Override
-	public void onAuthenticationFailed() {
+	public void onAuthenticationFailed()
+	{
 		onError("Unable to recognize fingerprint");
-
 	}
 
 	@Override
-	public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
+	public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result)
+	{
 		tryEncrypt();
 	}
 
@@ -180,7 +189,8 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 	 * Creates a symmetric key in the Android Key Store which can only be used after the user has
 	 * authenticated with fingerprint.
 	 */
-	protected void createKey() {
+	protected void createKey()
+	{
 		if (mGeneratedKey) {
 			return;
 		}
@@ -191,9 +201,8 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 		try {
 			mKeyStore.load(null);
 
-			mKeyGenerator.init(new KeyGenParameterSpec.Builder(KEY_NAME,
-					KeyProperties.PURPOSE_ENCRYPT |
-							KeyProperties.PURPOSE_DECRYPT)
+			mKeyGenerator.init(
+				new KeyGenParameterSpec.Builder(KEY_NAME, KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
 					.setBlockModes(KeyProperties.BLOCK_MODE_CBC)
 					.setUserAuthenticationRequired(true)
 					.setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
@@ -207,7 +216,8 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 		}
 	}
 
-	private boolean initCipher() {
+	private boolean initCipher()
+	{
 		try {
 			if (!mGeneratedKey) {
 				createKey();
@@ -222,7 +232,8 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 		}
 	}
 
-	public KrollDict deviceCanAuthenticate(int policy) {
+	public KrollDict deviceCanAuthenticate(int policy)
+	{
 		String error = "";
 		KrollDict response = new KrollDict();
 
@@ -245,14 +256,14 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 			if (error.isEmpty()) {
 				error = error + "Device is not secure, passcode not set";
 			} else {
-				error = error +", and no passcode detected";
+				error = error + ", and no passcode detected";
 			}
 			response.put("code", TitaniumIdentityModule.ERROR_PASSCODE_NOT_SET);
 		} else if (policy == TitaniumIdentityModule.AUTHENTICATION_POLICY_BIOMETRICS && !hasFingerprints) {
 			if (error.isEmpty()) {
 				error = error + "No enrolled fingerprints";
 			} else {
-				error = error +", and no enrolled fingerprints";
+				error = error + ", and no enrolled fingerprints";
 			}
 			response.put("code", TitaniumIdentityModule.ERROR_TOUCH_ID_NOT_ENROLLED);
 		}
