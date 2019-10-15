@@ -52,6 +52,17 @@
 			"commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
 		}
 	},
+	"lint-staged": {
+		"ios/**/*.{m,h}": [
+			"npx clang-format -style=file -i",
+			"git add"
+		],
+		"android/src/ti/**/*.java": [
+			"npx clang-format -style=file -i",
+			"git add"
+		],
+		"*.js": "eslint"
+	},
 	"commitlint": {
 		"extends": [
 			"@commitlint/config-conventional"
