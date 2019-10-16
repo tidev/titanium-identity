@@ -1,8 +1,9 @@
-@Library('pipeline-library') _
+library 'pipeline-library'
+
+def isMaster = env.BRANCH_NAME.equals('master')
 
 buildModule {
-	// defaults:
-	// nodeVersion = '4.7.3' // Must have version set up on Jenkins master before it can be changed
-	// sdkVersion = '6.2.0.GA'
-	// androidAPILevel = '25' // if changed, must install on build nodes
+	sdkVersion = '8.1.0.GA'
+	npmPublish = true // By default it'll do github release on master anyways too
+	npmPublishArgs = '--access public --dry-run'
 }
