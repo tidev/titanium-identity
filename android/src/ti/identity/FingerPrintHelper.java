@@ -6,13 +6,16 @@
  */
 package ti.identity;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.KeyguardManager;
-import android.hardware.fingerprint.FingerprintManager;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.hardware.biometrics.BiometricManager; // Use AndroidX support library.
+import android.hardware.biometrics.BiometricPrompt; // Use AndroidX support library.
 import android.os.Build;
 import android.os.CancellationSignal;
 import android.security.keystore.KeyGenParameterSpec;
-import android.security.keystore.KeyPermanentlyInvalidatedException;
 import android.security.keystore.KeyProperties;
 import android.util.Base64;
 
@@ -27,22 +30,22 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.Executor;
 
-public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
+public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 {
 
 	protected KeyguardManager mKeyguardManager;
-	protected FingerprintManager mFingerprintManager;
+	protected BiometricManager mBiometricManager;
 
 	protected KeyStore mKeyStore;
 	protected KeyGenerator mKeyGenerator;
+	protected BiometricPrompt.CryptoObject mCryptoObject;
 	protected Cipher mCipher;
 	private static Map<CancellationSignal, KeychainItemProxy> cancellationSignals = new HashMap<>();
-	protected FingerprintManager.CryptoObject mCryptoObject;
 	private static final String KEY_NAME = "appc_key";
 	private static final String SECRET_MESSAGE = "secret message";
 	private static String TAG = "FingerPrintHelper";
@@ -54,7 +57,7 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 	public FingerPrintHelper()
 	{
 		Activity activity = TiApplication.getAppRootOrCurrentActivity();
-		mFingerprintManager = activity.getSystemService(FingerprintManager.class);
+		mBiometricManager = activity.getSystemService(BiometricManager.class);
 		mKeyguardManager = activity.getSystemService(KeyguardManager.class);
 
 		try {
@@ -84,8 +87,8 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 
 	protected boolean isDeviceSupported()
 	{
-		if (Build.VERSION.SDK_INT >= 23 && mFingerprintManager != null) {
-			return mFingerprintManager.isHardwareDetected();
+		if (Build.VERSION.SDK_INT >= 23 && mBiometricManager != null) {
+			return mBiometricManager.canAuthenticate() == BiometricManager.BIOMETRIC_SUCCESS;
 		}
 		return false;
 	}
@@ -109,27 +112,39 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 		}
 	}
 
+	@SuppressLint("MissingPermission")
 	public void startListening(KrollFunction callback, KrollObject obj)
 	{
-		if (!(mFingerprintManager.isHardwareDetected() && mFingerprintManager.hasEnrolledFingerprints())) {
+		if (!isDeviceSupported()) {
 			return;
 		}
 
 		try {
 			if (initCipher()) {
-				mCryptoObject = new FingerprintManager.CryptoObject(mCipher);
+				mCryptoObject = new BiometricPrompt.CryptoObject(mCipher);
 			} else {
 				Log.e(TAG, "Unable to initialize cipher");
 			}
 		} catch (Exception e) {
-			Log.e(TAG, "Unable to initialize cipher");
+			Log.e(TAG, "Unable to initialize cipher: " + e.getMessage());
 		}
 
 		this.callback = callback;
 		this.krollObject = obj;
 
 		mSelfCancelled = false;
-		mFingerprintManager.authenticate(mCryptoObject, cancellationSignal(), 0 /* flags */, this, null);
+
+		final Context context = TiApplication.getInstance();
+		final Executor executor = context.getMainExecutor();
+		final BiometricPrompt.Builder promptInfo = new BiometricPrompt.Builder(context);
+		promptInfo.setTitle("Scan Fingerprint");
+		promptInfo.setNegativeButton("Cancel", executor, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				cancellationSignal();
+			}
+		});
+		promptInfo.build().authenticate(mCryptoObject, cancellationSignal(), executor, this);
 	}
 
 	private void onError(String errMsg)
@@ -180,7 +195,7 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 	}
 
 	@Override
-	public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result)
+	public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result)
 	{
 		tryEncrypt();
 	}
@@ -216,20 +231,14 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 		}
 	}
 
-	private boolean initCipher()
+	private boolean initCipher() throws Exception
 	{
-		try {
-			if (!mGeneratedKey) {
-				createKey();
-				SecretKey key = (SecretKey) mKeyStore.getKey(KEY_NAME, null);
-				mCipher.init(Cipher.ENCRYPT_MODE, key);
-			}
-			return true;
-		} catch (KeyPermanentlyInvalidatedException e) {
-			return false;
-		} catch (Exception e) {
-			throw new RuntimeException("Failed to init Cipher", e);
+		if (!mGeneratedKey) {
+			createKey();
+			SecretKey key = (SecretKey) mKeyStore.getKey(KEY_NAME, null);
+			mCipher.init(Cipher.ENCRYPT_MODE, key);
 		}
+		return true;
 	}
 
 	public KrollDict deviceCanAuthenticate(int policy)
@@ -237,13 +246,13 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 		String error = "";
 		KrollDict response = new KrollDict();
 
-		boolean hardwareDetected = false;
-		boolean hasFingerprints = false;
+		int canAuthenticate = mBiometricManager.canAuthenticate();
+		boolean hardwareDetected = canAuthenticate != BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE
+				&& canAuthenticate != BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE;
+		boolean hasFingerprints = canAuthenticate != BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED;
 		boolean hasPasscode = false;
 
 		try {
-			hardwareDetected = mFingerprintManager.isHardwareDetected();
-			hasFingerprints = hardwareDetected && mFingerprintManager.hasEnrolledFingerprints();
 			hasPasscode = mKeyguardManager.isDeviceSecure();
 		} catch (Exception e) {
 			// ignore, error gracefully
