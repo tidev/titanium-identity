@@ -12,7 +12,7 @@ import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.hardware.biometrics.BiometricManager; // Use AndroidX support library.
-import android.hardware.biometrics.BiometricPrompt; // Use AndroidX support library.
+import android.hardware.biometrics.BiometricPrompt;  // Use AndroidX support library.
 import android.os.Build;
 import android.os.CancellationSignal;
 import android.security.keystore.KeyGenParameterSpec;
@@ -140,7 +140,8 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 		promptInfo.setTitle("Scan Fingerprint");
 		promptInfo.setNegativeButton("Cancel", executor, new DialogInterface.OnClickListener() {
 			@Override
-			public void onClick(DialogInterface dialog, int which) {
+			public void onClick(DialogInterface dialog, int which)
+			{
 				cancellationSignal();
 			}
 		});
@@ -248,7 +249,7 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 
 		int canAuthenticate = mBiometricManager.canAuthenticate();
 		boolean hardwareDetected = canAuthenticate != BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE
-				&& canAuthenticate != BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE;
+								   && canAuthenticate != BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE;
 		boolean hasFingerprints = canAuthenticate != BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED;
 		boolean hasPasscode = false;
 
