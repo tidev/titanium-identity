@@ -25,6 +25,7 @@ import android.security.keystore.KeyPermanentlyInvalidatedException;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -401,26 +402,27 @@ public class KeychainItemProxy extends KrollProxy
 
 			// read decrypted data
 			BufferedInputStream bis = new BufferedInputStream(fin);
-			byte[] buffer = new byte[64];
+			CipherInputStream cis = new CipherInputStream(bis, cipher);
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			byte[] buffer = new byte[1024];
 			int length = 0;
-			int total = 0;
 			String decrypted = "";
 
 			// since we only encrypt strings, this is acceptable
-			while ((length = bis.read(buffer)) != -1) {
+			while ((length = cis.read(buffer)) != -1) {
+
 				// obtain decrypted string from buffer
-				byte[] encryptedData = cipher.doFinal(buffer, 0, length);
-				String part = new String(encryptedData, StandardCharsets.UTF_8);
-
-				// remove trailing terminators
-				part = part.replaceFirst("\u0000+$", "");
-
-				// append to decrypted string
-				decrypted += part;
-				total += length;
+				baos.write(buffer, 0, length);
 			}
+			decrypted = new String(baos.toByteArray(), StandardCharsets.UTF_8).replace("\u0000+$", "");
 
 			// close stream
+			if (baos != null) {
+				baos.close();
+			}
+			if (cis != null) {
+				cis.close();
+			}
 			if (bis != null) {
 				bis.close();
 			}
