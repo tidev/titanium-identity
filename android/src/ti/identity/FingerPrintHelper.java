@@ -226,7 +226,13 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 			}
 			return true;
 		} catch (KeyPermanentlyInvalidatedException e) {
-			return false;
+			mGeneratedKey = false;
+			try {
+				mKeyStore.deleteEntry(KEY_NAME);
+			} catch (Exception ex) {
+				throw new RuntimeException("Failed to remove invalidated key", ex);
+			}
+			return initCipher();
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to init Cipher", e);
 		}
