@@ -234,10 +234,23 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 
 	private boolean initCipher() throws Exception
 	{
-		if (!mGeneratedKey) {
-			createKey();
-			SecretKey key = (SecretKey) mKeyStore.getKey(KEY_NAME, null);
-			mCipher.init(Cipher.ENCRYPT_MODE, key);
+		try {
+			if (!mGeneratedKey) {
+				createKey();
+				SecretKey key = (SecretKey) mKeyStore.getKey(KEY_NAME, null);
+				mCipher.init(Cipher.ENCRYPT_MODE, key);
+			}
+			return true;
+		} catch (KeyPermanentlyInvalidatedException e) {
+			mGeneratedKey = false;
+			try {
+				mKeyStore.deleteEntry(KEY_NAME);
+			} catch (Exception ex) {
+				throw new RuntimeException("Failed to remove invalidated key", ex);
+			}
+			return initCipher();
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to init Cipher", e);
 		}
 		return true;
 	}
