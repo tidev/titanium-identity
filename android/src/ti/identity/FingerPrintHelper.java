@@ -6,15 +6,18 @@
  */
 package ti.identity;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.KeyguardManager;
-import android.hardware.fingerprint.FingerprintManager;
 import android.os.Build;
 import android.os.CancellationSignal;
 import android.security.keystore.KeyGenParameterSpec;
-import android.security.keystore.KeyPermanentlyInvalidatedException;
 import android.security.keystore.KeyProperties;
 import android.util.Base64;
+
+import androidx.biometric.BiometricManager;
+import androidx.biometric.BiometricPrompt;
+import androidx.fragment.app.FragmentActivity;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollFunction;
@@ -27,22 +30,22 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
-public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
+public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 {
 
 	protected KeyguardManager mKeyguardManager;
-	protected FingerprintManager mFingerprintManager;
-
+	protected BiometricManager mBiometricManager;
 	protected KeyStore mKeyStore;
 	protected KeyGenerator mKeyGenerator;
 	protected Cipher mCipher;
 	private static Map<CancellationSignal, KeychainItemProxy> cancellationSignals = new HashMap<>();
-	protected FingerprintManager.CryptoObject mCryptoObject;
+	protected BiometricPrompt.CryptoObject mCryptoObject;
 	private static final String KEY_NAME = "appc_key";
 	private static final String SECRET_MESSAGE = "secret message";
 	private static String TAG = "FingerPrintHelper";
@@ -51,10 +54,12 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 	protected boolean mSelfCancelled;
 	private boolean mGeneratedKey = false;
 
+	@SuppressWarnings("NewApi")
 	public FingerPrintHelper()
 	{
-		Activity activity = TiApplication.getAppRootOrCurrentActivity();
-		mFingerprintManager = activity.getSystemService(FingerprintManager.class);
+		final Activity activity = TiApplication.getAppRootOrCurrentActivity();
+
+		mBiometricManager = BiometricManager.from(activity);
 		mKeyguardManager = activity.getSystemService(KeyguardManager.class);
 
 		try {
@@ -70,22 +75,10 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 		}
 	}
 
-	public static CancellationSignal cancellationSignal(KeychainItemProxy keychainItemProxy)
-	{
-		CancellationSignal signal = new CancellationSignal();
-		cancellationSignals.put(signal, keychainItemProxy);
-		return signal;
-	}
-
-	public static CancellationSignal cancellationSignal()
-	{
-		return cancellationSignal(null);
-	}
-
 	protected boolean isDeviceSupported()
 	{
-		if (Build.VERSION.SDK_INT >= 23 && mFingerprintManager != null) {
-			return mFingerprintManager.isHardwareDetected();
+		if (Build.VERSION.SDK_INT >= 23 && mBiometricManager != null) {
+			return mBiometricManager.canAuthenticate() == BiometricManager.BIOMETRIC_SUCCESS;
 		}
 		return false;
 	}
@@ -109,15 +102,16 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 		}
 	}
 
+	@SuppressLint("MissingPermission,NewApi")
 	public void startListening(KrollFunction callback, KrollObject obj)
 	{
-		if (!(mFingerprintManager.isHardwareDetected() && mFingerprintManager.hasEnrolledFingerprints())) {
+		if (!isDeviceSupported()) {
 			return;
 		}
 
 		try {
 			if (initCipher()) {
-				mCryptoObject = new FingerprintManager.CryptoObject(mCipher);
+				mCryptoObject = new BiometricPrompt.CryptoObject(mCipher);
 			} else {
 				Log.e(TAG, "Unable to initialize cipher");
 			}
@@ -129,7 +123,15 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 		this.krollObject = obj;
 
 		mSelfCancelled = false;
-		mFingerprintManager.authenticate(mCryptoObject, cancellationSignal(), 0 /* flags */, this, null);
+
+		final BiometricPrompt.PromptInfo.Builder promptInfo = new BiometricPrompt.PromptInfo.Builder();
+		promptInfo.setTitle("Scan Fingerprint");
+		promptInfo.setNegativeButtonText("Cancel");
+
+		final Executor executor = Executors.newSingleThreadExecutor();
+		final BiometricPrompt prompt =
+			new BiometricPrompt((FragmentActivity) TiApplication.getAppCurrentActivity(), executor, this);
+		prompt.authenticate(promptInfo.build(), mCryptoObject);
 	}
 
 	private void onError(String errMsg)
@@ -168,19 +170,13 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 	}
 
 	@Override
-	public void onAuthenticationHelp(int helpMsgId, CharSequence helpString)
-	{
-		Log.w(TAG, helpString.toString());
-	}
-
-	@Override
 	public void onAuthenticationFailed()
 	{
 		onError("Unable to recognize fingerprint");
 	}
 
 	@Override
-	public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result)
+	public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result)
 	{
 		tryEncrypt();
 	}
@@ -189,6 +185,7 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 	 * Creates a symmetric key in the Android Key Store which can only be used after the user has
 	 * authenticated with fingerprint.
 	 */
+	@SuppressWarnings("NewApi")
 	protected void createKey()
 	{
 		if (mGeneratedKey) {
@@ -216,40 +213,29 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 		}
 	}
 
-	private boolean initCipher()
+	private boolean initCipher() throws Exception
 	{
-		try {
-			if (!mGeneratedKey) {
-				createKey();
-				SecretKey key = (SecretKey) mKeyStore.getKey(KEY_NAME, null);
-				mCipher.init(Cipher.ENCRYPT_MODE, key);
-			}
-			return true;
-		} catch (KeyPermanentlyInvalidatedException e) {
-			mGeneratedKey = false;
-			try {
-				mKeyStore.deleteEntry(KEY_NAME);
-			} catch (Exception ex) {
-				throw new RuntimeException("Failed to remove invalidated key", ex);
-			}
-			return initCipher();
-		} catch (Exception e) {
-			throw new RuntimeException("Failed to init Cipher", e);
+		if (!mGeneratedKey) {
+			createKey();
+			SecretKey key = (SecretKey) mKeyStore.getKey(KEY_NAME, null);
+			mCipher.init(Cipher.ENCRYPT_MODE, key);
 		}
+		return true;
 	}
 
+	@SuppressWarnings("NewApi")
 	public KrollDict deviceCanAuthenticate(int policy)
 	{
 		String error = "";
 		KrollDict response = new KrollDict();
 
-		boolean hardwareDetected = false;
-		boolean hasFingerprints = false;
+		int canAuthenticate = mBiometricManager.canAuthenticate();
+		boolean hardwareDetected = canAuthenticate != BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE
+								   && canAuthenticate != BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE;
+		boolean hasFingerprints = canAuthenticate != BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED;
 		boolean hasPasscode = false;
 
 		try {
-			hardwareDetected = mFingerprintManager.isHardwareDetected();
-			hasFingerprints = hardwareDetected && mFingerprintManager.hasEnrolledFingerprints();
 			hasPasscode = mKeyguardManager.isDeviceSecure();
 		} catch (Exception e) {
 			// ignore, error gracefully

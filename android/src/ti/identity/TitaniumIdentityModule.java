@@ -12,14 +12,12 @@ import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollFunction;
-import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.util.TiConvert;
 
 import java.lang.Override;
 import java.util.HashMap;
 
 import android.app.Activity;
-import android.hardware.fingerprint.FingerprintManager;
 import android.os.Build;
 
 @Kroll.module(name = "Identity", id = "ti.identity")
@@ -64,7 +62,7 @@ public class TitaniumIdentityModule extends KrollModule
 	public static final int ACCESS_CONTROL_TOUCH_ID_CURRENT_SET = KeychainItemProxy.ACCESS_CONTROL_TOUCH_ID_CURRENT_SET;
 
 	@Kroll.constant
-	public static final int ERROR_TOUCH_ID_LOCKOUT = FingerprintManager.FINGERPRINT_ERROR_LOCKOUT;
+	public static final int ERROR_TOUCH_ID_LOCKOUT = 7;
 	@Kroll.constant
 	public static final int ERROR_AUTHENTICATION_FAILED = -1;
 	@Kroll.constant
@@ -77,15 +75,15 @@ public class TitaniumIdentityModule extends KrollModule
 	public static final int ERROR_KEY_PERMANENTLY_INVALIDATED = -5;
 
 	@Kroll.constant
-	public static final int FINGERPRINT_ACQUIRED_PARTIAL = FingerprintManager.FINGERPRINT_ACQUIRED_PARTIAL;
+	public static final int FINGERPRINT_ACQUIRED_PARTIAL = 1;
 	@Kroll.constant
-	public static final int FINGERPRINT_ACQUIRED_INSUFFICIENT = FingerprintManager.FINGERPRINT_ACQUIRED_INSUFFICIENT;
+	public static final int FINGERPRINT_ACQUIRED_INSUFFICIENT = 2;
 	@Kroll.constant
-	public static final int FINGERPRINT_ACQUIRED_IMAGER_DIRTY = FingerprintManager.FINGERPRINT_ACQUIRED_IMAGER_DIRTY;
+	public static final int FINGERPRINT_ACQUIRED_IMAGER_DIRTY = 3;
 	@Kroll.constant
-	public static final int FINGERPRINT_ACQUIRED_TOO_SLOW = FingerprintManager.FINGERPRINT_ACQUIRED_TOO_SLOW;
+	public static final int FINGERPRINT_ACQUIRED_TOO_SLOW = 4;
 	@Kroll.constant
-	public static final int FINGERPRINT_ACQUIRED_TOO_FAST = FingerprintManager.FINGERPRINT_ACQUIRED_TOO_FAST;
+	public static final int FINGERPRINT_ACQUIRED_TOO_FAST = 5;
 
 	protected FingerPrintHelper mfingerprintHelper;
 	private Throwable fingerprintHelperException;
