@@ -15,16 +15,18 @@ import org.appcelerator.titanium.TiApplication;
 
 import android.app.KeyguardManager;
 import android.content.Context;
-import android.hardware.fingerprint.FingerprintManager;
-import android.hardware.fingerprint.FingerprintManager.CryptoObject;
-import android.hardware.fingerprint.FingerprintManager.AuthenticationCallback;
 import android.os.Build;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 import android.security.keystore.KeyPermanentlyInvalidatedException;
 
+import androidx.biometric.BiometricManager;
+import androidx.biometric.BiometricPrompt;
+import androidx.biometric.BiometricPrompt.AuthenticationCallback;
+import androidx.fragment.app.FragmentActivity;
+
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -34,15 +36,18 @@ import java.security.InvalidKeyException;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
-import javax.crypto.CipherOutputStream;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
-@Kroll.proxy(creatableInModule=TitaniumIdentityModule.class)
-public class KeychainItemProxy extends KrollProxy {
+@Kroll.proxy(creatableInModule = TitaniumIdentityModule.class)
+public class KeychainItemProxy extends KrollProxy
+{
 
 	private static final String TAG = "KeychainItem";
 
@@ -69,14 +74,15 @@ public class KeychainItemProxy extends KrollProxy {
 	private SecretKey key;
 	private Cipher cipher;
 	private int ivSize = 16;
-	private CryptoObject cryptoObject;
+	private BiometricPrompt.CryptoObject cryptoObject;
 
 	private String algorithm = KeyProperties.KEY_ALGORITHM_AES;
 	private String blockMode = KeyProperties.BLOCK_MODE_CBC;
 	private String padding = KeyProperties.ENCRYPTION_PADDING_PKCS7;
 
-	private FingerprintManager fingerprintManager;
-	private AuthenticationCallback authenticationCallback;
+	protected BiometricManager biometricManager;
+	protected BiometricPrompt.PromptInfo biometricPromptInfo;
+	private BiometricPrompt.AuthenticationCallback authenticationCallback;
 
 	private String identifier = "";
 	private int accessibilityMode = 0;
@@ -85,16 +91,19 @@ public class KeychainItemProxy extends KrollProxy {
 	private String suffix = "_kc.dat";
 	private Context context;
 
-	private class EVENT {
+	private class EVENT
+	{
 		public final String event;
 		public final String value;
 
-		public EVENT(String event, String value) {
+		public EVENT(String event, String value)
+		{
 			this.event = event;
 			this.value = value;
 		}
 
-		public EVENT(String event) {
+		public EVENT(String event)
+		{
 			this.event = event;
 			this.value = null;
 		}
@@ -102,7 +111,9 @@ public class KeychainItemProxy extends KrollProxy {
 	private List<EVENT> eventQueue = new ArrayList<EVENT>();
 	private boolean eventBusy = false;
 
-	public KeychainItemProxy() {
+	@SuppressWarnings("NewApi")
+	public KeychainItemProxy()
+	{
 		super();
 
 		defaultValues.put(PROPERTY_ACCESSIBILITY_MODE, 0);
@@ -111,33 +122,45 @@ public class KeychainItemProxy extends KrollProxy {
 
 		try {
 			context = TiApplication.getAppRootOrCurrentActivity();
-			keyguardManager = context.getSystemService(KeyguardManager.class);
 
 			// fingerprint authentication
-			fingerprintManager = context.getSystemService(FingerprintManager.class);
-			authenticationCallback = new AuthenticationCallback() {
-				@Override
-				public void onAuthenticationError(int errorCode, CharSequence errString) {
-					if (errorCode != FingerprintManager.FINGERPRINT_ERROR_CANCELED) {
-						doEvents(errorCode, errString.toString());
+			if (Build.VERSION.SDK_INT >= 23) {
+				keyguardManager = context.getSystemService(KeyguardManager.class);
+				biometricManager = BiometricManager.from(context);
+				authenticationCallback = new AuthenticationCallback() {
+					@Override
+					public void onAuthenticationError(int errorCode, CharSequence errString)
+					{
+						switch (errorCode) {
+							case BiometricPrompt.ERROR_USER_CANCELED:
+							case BiometricPrompt.ERROR_CANCELED:
+							case BiometricPrompt.ERROR_NEGATIVE_BUTTON:
+								doEvents(TitaniumIdentityModule.ERROR_AUTHENTICATION_FAILED, errString.toString());
+								break;
+							default:
+								doEvents(errorCode, errString.toString());
+						}
 					}
-				}
 
-				@Override
-				public void onAuthenticationHelp(int helpCode, CharSequence helpString) {
-					doEvents(helpCode, helpString.toString());
-				}
+					@Override
+					public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result)
+					{
+						doEvents(0, null);
+					}
 
-				@Override
-				public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
-					doEvents(0, null);
-				}
+					@Override
+					public void onAuthenticationFailed()
+					{
+						doEvents(TitaniumIdentityModule.ERROR_AUTHENTICATION_FAILED,
+								 "failed to authenticate fingerprint!");
+					}
+				};
 
-				@Override
-				public void onAuthenticationFailed() {
-					doEvents(TitaniumIdentityModule.ERROR_AUTHENTICATION_FAILED, "failed to authenticate fingerprint!");
-				}
-			};
+				final BiometricPrompt.PromptInfo.Builder promptInfo = new BiometricPrompt.PromptInfo.Builder();
+				promptInfo.setTitle("Scan Fingerprint");
+				promptInfo.setNegativeButtonText("Cancel");
+				biometricPromptInfo = promptInfo.build();
+			}
 
 			// load Android key store
 			keyStore = KeyStore.getInstance("AndroidKeyStore");
@@ -148,34 +171,48 @@ public class KeychainItemProxy extends KrollProxy {
 		}
 	}
 
-	@Kroll.getProperty @Kroll.method
-	public int getAccessibilityMode() {
+	@Kroll
+		.getProperty
+		@Kroll.method
+		public int getAccessibilityMode()
+	{
 		return accessibilityMode;
 	}
 
-	@Kroll.getProperty @Kroll.method
-	public int getAccessControlMode() {
+	@Kroll
+		.getProperty
+		@Kroll.method
+		public int getAccessControlMode()
+	{
 		return accessControlMode;
 	}
 
-	@Kroll.getProperty @Kroll.method
-	private String getCipher() {
+	@Kroll
+		.getProperty
+		@Kroll.method
+		private String getCipher()
+	{
 		return algorithm + "/" + blockMode + "/" + padding;
 	}
 
-	@Kroll.getProperty @Kroll.method
-	private String getIdentifier() {
+	@Kroll
+		.getProperty
+		@Kroll.method
+		private String getIdentifier()
+	{
 		return identifier;
 	}
 
-	private boolean useFingerprintAuthentication() {
+	private boolean useFingerprintAuthentication()
+	{
 		if ((accessControlMode & (ACCESS_CONTROL_TOUCH_ID_ANY | ACCESS_CONTROL_TOUCH_ID_CURRENT_SET)) != 0) {
 			return true;
 		}
 		return false;
 	}
 
-	private void processEvents() {
+	private void processEvents()
+	{
 		if (!eventBusy && !eventQueue.isEmpty()) {
 			eventBusy = true;
 
@@ -204,7 +241,8 @@ public class KeychainItemProxy extends KrollProxy {
 		}
 	}
 
-	private void doEvents(int errorCode, String message) {
+	private void doEvents(int errorCode, String message)
+	{
 		KrollDict result = null;
 		if (!eventQueue.isEmpty()) {
 			EVENT e = eventQueue.get(0);
@@ -240,14 +278,19 @@ public class KeychainItemProxy extends KrollProxy {
 		processEvents();
 	}
 
-	private KrollDict initEncrypt() {
+	@SuppressWarnings("NewApi")
+	private KrollDict initEncrypt()
+	{
 		try {
 			// initialize encryption cipher
 			cipher.init(Cipher.ENCRYPT_MODE, key);
 
 			// fingerprint authentication
-			if (useFingerprintAuthentication()) {
-				fingerprintManager.authenticate(cryptoObject, FingerPrintHelper.cancellationSignal(this), 0, authenticationCallback, null);
+			if (biometricManager != null && useFingerprintAuthentication()) {
+				final Executor executor = Executors.newSingleThreadExecutor();
+				final BiometricPrompt prompt = new BiometricPrompt(
+					(FragmentActivity) TiApplication.getAppCurrentActivity(), executor, authenticationCallback);
+				prompt.authenticate(biometricPromptInfo, cryptoObject);
 			}
 
 		} catch (Exception e) {
@@ -277,7 +320,8 @@ public class KeychainItemProxy extends KrollProxy {
 		return null;
 	}
 
-	private KrollDict doEncrypt(String value) {
+	private KrollDict doEncrypt(String value)
+	{
 		KrollDict result = new KrollDict();
 		result.put("identifier", identifier);
 		try {
@@ -307,7 +351,9 @@ public class KeychainItemProxy extends KrollProxy {
 		return result;
 	}
 
-	private KrollDict initDecrypt() {
+	@SuppressWarnings("NewApi")
+	private KrollDict initDecrypt()
+	{
 		try {
 			// load file from private storage
 			FileInputStream fin = context.openFileInput(identifier + suffix);
@@ -315,7 +361,7 @@ public class KeychainItemProxy extends KrollProxy {
 			// read IV
 			byte[] iv = new byte[ivSize];
 			fin.read(iv, 0, iv.length);
-			
+
 			// close stream
 			if (fin != null) {
 				fin.close();
@@ -325,8 +371,11 @@ public class KeychainItemProxy extends KrollProxy {
 			cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(iv));
 
 			// fingerprint authentication
-			if (useFingerprintAuthentication()) {
-				fingerprintManager.authenticate(cryptoObject, FingerPrintHelper.cancellationSignal(this), 0, authenticationCallback, null);
+			if (biometricManager != null && useFingerprintAuthentication()) {
+				final Executor executor = Executors.newSingleThreadExecutor();
+				final BiometricPrompt prompt = new BiometricPrompt(
+					(FragmentActivity) TiApplication.getAppCurrentActivity(), executor, authenticationCallback);
+				prompt.authenticate(biometricPromptInfo, cryptoObject);
 			}
 
 		} catch (Exception e) {
@@ -358,7 +407,8 @@ public class KeychainItemProxy extends KrollProxy {
 		return null;
 	}
 
-	private KrollDict doDecrypt() {
+	private KrollDict doDecrypt()
+	{
 		KrollDict result = new KrollDict();
 		result.put("identifier", identifier);
 		try {
@@ -368,29 +418,30 @@ public class KeychainItemProxy extends KrollProxy {
 
 			// read decrypted data
 			BufferedInputStream bis = new BufferedInputStream(fin);
-			byte[] buffer = new byte[64];
+			CipherInputStream cis = new CipherInputStream(bis, cipher);
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			byte[] buffer = new byte[1024];
 			int length = 0;
-			int total = 0;
 			String decrypted = "";
 
 			// since we only encrypt strings, this is acceptable
-			while ((length = bis.read(buffer)) != -1) {
+			while ((length = cis.read(buffer)) != -1) {
+
 				// obtain decrypted string from buffer
-				byte[] encryptedData = cipher.doFinal(buffer, 0, length);
-				String part = new String(encryptedData, StandardCharsets.UTF_8);
-
-				// remove trailing terminators
-				part = part.replaceFirst("\u0000+$", "");
-
-				// append to decrypted string
-				decrypted += part;
-				total += length;
+				baos.write(buffer, 0, length);
 			}
+			decrypted = new String(baos.toByteArray(), StandardCharsets.UTF_8).replace("\u0000+$", "");
 
 			// close stream
+			if (baos != null) {
+				baos.close();
+			}
+			if (cis != null) {
+				cis.close();
+			}
 			if (bis != null) {
 				bis.close();
-  			}
+			}
 			if (fin != null) {
 				fin.close();
 			}
@@ -410,7 +461,8 @@ public class KeychainItemProxy extends KrollProxy {
 		return result;
 	}
 
-	private KrollDict doReset() {
+	private KrollDict doReset()
+	{
 		KrollDict result = new KrollDict();
 		boolean deleted = false;
 
@@ -438,51 +490,60 @@ public class KeychainItemProxy extends KrollProxy {
 		return result;
 	}
 
-	private boolean exists() {
+	private boolean exists()
+	{
 		File file = context.getFileStreamPath(identifier + suffix);
 		return file != null && file.exists();
 	}
 
-	public void resetEvents() {
+	public void resetEvents()
+	{
 		eventQueue.clear();
 		eventBusy = false;
 	}
 
 	@Kroll.method
-	public void save(String value) {
+	public void save(String value)
+	{
 		eventQueue.add(new EVENT(EVENT_SAVE, value));
 		processEvents();
 	}
 
 	@Kroll.method
-	public void read() {
+	public void read()
+	{
 		eventQueue.add(new EVENT(EVENT_READ));
 		processEvents();
 	}
 
 	@Kroll.method
-	public void update(String value) {
+	public void update(String value)
+	{
 		eventQueue.add(new EVENT(EVENT_UPDATE, value));
 		processEvents();
 	}
 
 	@Kroll.method
-	public void reset() {
+	public void reset()
+	{
 		eventQueue.add(new EVENT(EVENT_RESET));
 		processEvents();
 	}
 
 	@Kroll.method
-	public void fetchExistence(Object callback) {
+	public void fetchExistence(Object callback)
+	{
 		if (callback instanceof KrollFunction) {
 			KrollDict result = new KrollDict();
 			result.put("exists", exists());
-			((KrollFunction) callback).callAsync(krollObject, new Object[]{result});
+			((KrollFunction) callback).callAsync(krollObject, new Object[] { result });
 		}
 	}
 
 	@Override
-	public void handleCreationDict(KrollDict dict) {
+	@SuppressWarnings("NewApi")
+	public void handleCreationDict(KrollDict dict)
+	{
 		super.handleCreationDict(dict);
 
 		if (dict.containsKey(PROPERTY_CIPHER)) {
@@ -508,15 +569,18 @@ public class KeychainItemProxy extends KrollProxy {
 				try {
 					if (!keyStore.containsAlias(identifier)) {
 						KeyGenerator generator = KeyGenerator.getInstance(algorithm, "AndroidKeyStore");
-						KeyGenParameterSpec.Builder spec = new KeyGenParameterSpec.Builder(identifier,
-								KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
+						KeyGenParameterSpec.Builder spec =
+							new KeyGenParameterSpec
+								.Builder(identifier, KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
 								.setBlockModes(blockMode)
 								.setEncryptionPaddings(padding);
 
-						if ((accessControlMode & (ACCESS_CONTROL_TOUCH_ID_ANY | ACCESS_CONTROL_TOUCH_ID_CURRENT_SET)) != 0) {
+						if ((accessControlMode & (ACCESS_CONTROL_TOUCH_ID_ANY | ACCESS_CONTROL_TOUCH_ID_CURRENT_SET))
+							!= 0) {
 							spec.setUserAuthenticationRequired(true);
 						}
-						if ((accessControlMode & ACCESS_CONTROL_TOUCH_ID_CURRENT_SET) != 0 && Build.VERSION.SDK_INT >= 24) {
+						if ((accessControlMode & ACCESS_CONTROL_TOUCH_ID_CURRENT_SET) != 0
+							&& Build.VERSION.SDK_INT >= 24) {
 							spec.setInvalidatedByBiometricEnrollment(true);
 						}
 
@@ -525,12 +589,15 @@ public class KeychainItemProxy extends KrollProxy {
 					} else {
 						key = (SecretKey) keyStore.getKey(identifier, null);
 					}
-					if ((accessControlMode & (ACCESS_CONTROL_USER_PRESENCE | ACCESS_CONTROL_DEVICE_PASSCODE)) != 0 && !keyguardManager.isDeviceSecure()) {
+					if ((accessControlMode & (ACCESS_CONTROL_USER_PRESENCE | ACCESS_CONTROL_DEVICE_PASSCODE)) != 0
+						&& !keyguardManager.isDeviceSecure()) {
 						key = null;
 						Log.e(TAG, "device is not secure, could not generate key!");
 					}
 					cipher = Cipher.getInstance(getCipher());
-					cryptoObject = new FingerprintManager.CryptoObject(cipher);
+					if (biometricManager != null) {
+						cryptoObject = new BiometricPrompt.CryptoObject(cipher);
+					}
 				} catch (Exception e) {
 					Log.e(TAG, e.toString());
 				}
@@ -539,7 +606,8 @@ public class KeychainItemProxy extends KrollProxy {
 	}
 
 	@Override
-	public String getApiName() {
-		return "ti.touchid.KeychainItem";
+	public String getApiName()
+	{
+		return "Ti.Identity.KeychainItem";
 	}
 }

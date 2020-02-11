@@ -12,17 +12,15 @@ import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollFunction;
-import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.util.TiConvert;
 
 import java.lang.Override;
 import java.util.HashMap;
 
 import android.app.Activity;
-import android.hardware.fingerprint.FingerprintManager;
 import android.os.Build;
 
-@Kroll.module(name="Identity", id="ti.identity")
+@Kroll.module(name = "Identity", id = "ti.identity")
 public class TitaniumIdentityModule extends KrollModule
 {
 	private static final String TAG = "Identity";
@@ -30,58 +28,92 @@ public class TitaniumIdentityModule extends KrollModule
 
 	public static final String PROPERTY_AUTHENTICATION_POLICY = "authenticationPolicy";
 
-	@Kroll.constant public static final int SUCCESS = 0;
-	@Kroll.constant public static final int SERVICE_MISSING = 1;
-	@Kroll.constant public static final int SERVICE_VERSION_UPDATE_REQUIRED = 2;
-	@Kroll.constant public static final int SERVICE_DISABLED = 3;
-	@Kroll.constant public static final int SERVICE_INVALID = 9;
+	@Kroll.constant
+	public static final int SUCCESS = 0;
+	@Kroll.constant
+	public static final int SERVICE_MISSING = 1;
+	@Kroll.constant
+	public static final int SERVICE_VERSION_UPDATE_REQUIRED = 2;
+	@Kroll.constant
+	public static final int SERVICE_DISABLED = 3;
+	@Kroll.constant
+	public static final int SERVICE_INVALID = 9;
 
-	@Kroll.constant public static final int AUTHENTICATION_POLICY_BIOMETRICS = 0;
-	@Kroll.constant public static final int AUTHENTICATION_POLICY_PASSCODE = 1;
+	@Kroll.constant
+	public static final int AUTHENTICATION_POLICY_BIOMETRICS = 0;
+	@Kroll.constant
+	public static final int AUTHENTICATION_POLICY_PASSCODE = 1;
 
-	@Kroll.constant public static final int ACCESSIBLE_ALWAYS = KeychainItemProxy.ACCESSIBLE_ALWAYS;
-	@Kroll.constant public static final int ACCESSIBLE_ALWAYS_THIS_DEVICE_ONLY = KeychainItemProxy.ACCESSIBLE_ALWAYS_THIS_DEVICE_ONLY;
-	@Kroll.constant public static final int ACCESSIBLE_WHEN_PASSCODE_SET_THIS_DEVICE_ONLY = KeychainItemProxy.ACCESSIBLE_WHEN_PASSCODE_SET_THIS_DEVICE_ONLY;
+	@Kroll.constant
+	public static final int ACCESSIBLE_ALWAYS = KeychainItemProxy.ACCESSIBLE_ALWAYS;
+	@Kroll.constant
+	public static final int ACCESSIBLE_ALWAYS_THIS_DEVICE_ONLY = KeychainItemProxy.ACCESSIBLE_ALWAYS_THIS_DEVICE_ONLY;
+	@Kroll.constant
+	public static final int ACCESSIBLE_WHEN_PASSCODE_SET_THIS_DEVICE_ONLY =
+		KeychainItemProxy.ACCESSIBLE_WHEN_PASSCODE_SET_THIS_DEVICE_ONLY;
 
-	@Kroll.constant public static final int ACCESS_CONTROL_USER_PRESENCE = KeychainItemProxy.ACCESS_CONTROL_USER_PRESENCE;
-	@Kroll.constant public static final int ACCESS_CONTROL_DEVICE_PASSCODE = KeychainItemProxy.ACCESS_CONTROL_DEVICE_PASSCODE;
-	@Kroll.constant public static final int ACCESS_CONTROL_TOUCH_ID_ANY = KeychainItemProxy.ACCESS_CONTROL_TOUCH_ID_ANY;
-	@Kroll.constant public static final int ACCESS_CONTROL_TOUCH_ID_CURRENT_SET = KeychainItemProxy.ACCESS_CONTROL_TOUCH_ID_CURRENT_SET;
+	@Kroll.constant
+	public static final int ACCESS_CONTROL_USER_PRESENCE = KeychainItemProxy.ACCESS_CONTROL_USER_PRESENCE;
+	@Kroll.constant
+	public static final int ACCESS_CONTROL_DEVICE_PASSCODE = KeychainItemProxy.ACCESS_CONTROL_DEVICE_PASSCODE;
+	@Kroll.constant
+	public static final int ACCESS_CONTROL_TOUCH_ID_ANY = KeychainItemProxy.ACCESS_CONTROL_TOUCH_ID_ANY;
+	@Kroll.constant
+	public static final int ACCESS_CONTROL_TOUCH_ID_CURRENT_SET = KeychainItemProxy.ACCESS_CONTROL_TOUCH_ID_CURRENT_SET;
 
-	@Kroll.constant public static final int ERROR_TOUCH_ID_LOCKOUT = FingerprintManager.FINGERPRINT_ERROR_LOCKOUT;
-	@Kroll.constant public static final int ERROR_AUTHENTICATION_FAILED = -1;
-	@Kroll.constant public static final int ERROR_TOUCH_ID_NOT_ENROLLED = -2;
-	@Kroll.constant public static final int ERROR_TOUCH_ID_NOT_AVAILABLE = -3;
-	@Kroll.constant public static final int ERROR_PASSCODE_NOT_SET = -4;
-	@Kroll.constant public static final int ERROR_KEY_PERMANENTLY_INVALIDATED = -5;
+	@Kroll.constant
+	public static final int ERROR_TOUCH_ID_LOCKOUT = 7;
+	@Kroll.constant
+	public static final int ERROR_AUTHENTICATION_FAILED = -1;
+	@Kroll.constant
+	public static final int ERROR_TOUCH_ID_NOT_ENROLLED = -2;
+	@Kroll.constant
+	public static final int ERROR_TOUCH_ID_NOT_AVAILABLE = -3;
+	@Kroll.constant
+	public static final int ERROR_PASSCODE_NOT_SET = -4;
+	@Kroll.constant
+	public static final int ERROR_KEY_PERMANENTLY_INVALIDATED = -5;
 
-	@Kroll.constant public static final int FINGERPRINT_ACQUIRED_PARTIAL = FingerprintManager.FINGERPRINT_ACQUIRED_PARTIAL;
-	@Kroll.constant public static final int FINGERPRINT_ACQUIRED_INSUFFICIENT = FingerprintManager.FINGERPRINT_ACQUIRED_INSUFFICIENT;
-	@Kroll.constant public static final int FINGERPRINT_ACQUIRED_IMAGER_DIRTY = FingerprintManager.FINGERPRINT_ACQUIRED_IMAGER_DIRTY;
-	@Kroll.constant public static final int FINGERPRINT_ACQUIRED_TOO_SLOW = FingerprintManager.FINGERPRINT_ACQUIRED_TOO_SLOW;
-	@Kroll.constant public static final int FINGERPRINT_ACQUIRED_TOO_FAST = FingerprintManager.FINGERPRINT_ACQUIRED_TOO_FAST;
+	@Kroll.constant
+	public static final int FINGERPRINT_ACQUIRED_PARTIAL = 1;
+	@Kroll.constant
+	public static final int FINGERPRINT_ACQUIRED_INSUFFICIENT = 2;
+	@Kroll.constant
+	public static final int FINGERPRINT_ACQUIRED_IMAGER_DIRTY = 3;
+	@Kroll.constant
+	public static final int FINGERPRINT_ACQUIRED_TOO_SLOW = 4;
+	@Kroll.constant
+	public static final int FINGERPRINT_ACQUIRED_TOO_FAST = 5;
 
 	protected FingerPrintHelper mfingerprintHelper;
 	private Throwable fingerprintHelperException;
 
 	private static int authenticationPolicy = AUTHENTICATION_POLICY_BIOMETRICS;
 
-	public TitaniumIdentityModule() {
+	public TitaniumIdentityModule()
+	{
 		super();
 		init();
 	}
 
-	@Kroll.getProperty
-	public int getAuthenticationPolicy() {
+	@Kroll
+		.getProperty
+		@Kroll.method
+		public int getAuthenticationPolicy()
+	{
 		return authenticationPolicy;
 	}
 
-	@Kroll.setProperty
-	public void setAuthenticationPolicy(int policy) {
+	@Kroll
+		.setProperty
+		@Kroll.method
+		public void setAuthenticationPolicy(int policy)
+	{
 		authenticationPolicy = policy;
 	}
 
-	private void init() {
+	private void init()
+	{
 		if (Build.VERSION.SDK_INT >= 23) {
 			try {
 				mfingerprintHelper = new FingerPrintHelper();
@@ -94,14 +126,16 @@ public class TitaniumIdentityModule extends KrollModule
 	}
 
 	@Override
-	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy) {
+	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy)
+	{
 		if (key.equals(PROPERTY_AUTHENTICATION_POLICY)) {
 			authenticationPolicy = TiConvert.toInt(newValue);
 		}
 	}
 
 	@Kroll.method
-	public void authenticate(HashMap params) {
+	public void authenticate(HashMap params)
+	{
 		if (mfingerprintHelper == null) {
 			init();
 		}
@@ -111,13 +145,14 @@ public class TitaniumIdentityModule extends KrollModule
 		if (params.containsKey("callback")) {
 			Object callback = params.get("callback");
 			if (callback instanceof KrollFunction) {
-				mfingerprintHelper.startListening((KrollFunction)callback, getKrollObject());
+				mfingerprintHelper.startListening((KrollFunction) callback, getKrollObject());
 			}
 		}
 	}
 
 	@Kroll.method
-	public HashMap deviceCanAuthenticate() {
+	public HashMap deviceCanAuthenticate()
+	{
 		if (mfingerprintHelper == null) {
 			init();
 		}
@@ -140,7 +175,8 @@ public class TitaniumIdentityModule extends KrollModule
 	}
 
 	@Kroll.method
-	public boolean isSupported() {
+	public boolean isSupported()
+	{
 		if (mfingerprintHelper == null) {
 			init();
 		}
@@ -149,19 +185,27 @@ public class TitaniumIdentityModule extends KrollModule
 		}
 		return false;
 	}
-	
-	@Override
-	public void onPause(Activity activity) {
-		super.onPause(activity);	
-		if (mfingerprintHelper != null) {
-			mfingerprintHelper.stopListening();
-		}	
-	}
 
-	@Kroll.method
-	public void invalidate() {
+	@Override
+	public void onPause(Activity activity)
+	{
+		super.onPause(activity);
 		if (mfingerprintHelper != null) {
 			mfingerprintHelper.stopListening();
 		}
+	}
+
+	@Kroll.method
+	public void invalidate()
+	{
+		if (mfingerprintHelper != null) {
+			mfingerprintHelper.stopListening();
+		}
+	}
+
+	@Override
+	public String getApiName()
+	{
+		return "Ti.Identity";
 	}
 }

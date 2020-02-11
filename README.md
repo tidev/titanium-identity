@@ -1,6 +1,6 @@
-<h1 align="center">🔐 Ti.Identity</h1>
+# 🔐 Ti.Identity Module [![Build Status](https://jenkins.appcelerator.org/buildStatus/icon?job=modules%2Ftitanium-identity%2Fmaster)](https://jenkins.appcelerator.org/job/modules/job/titanium-identityy/job/master/) [![@titanium-sdk/facebook](https://img.shields.io/npm/v/@titanium-sdk/ti.identity.png)](https://www.npmjs.com/package/@titanium-sdk/ti.identity)
 
-<p align="center">This native module allows you to use Fingerprint authentication, Keychain Access and Face authentication (iOS) with Axway Titanium.</p>
+This native module allows you to use Fingerprint authentication, Keychain Access and Face authentication (iOS) with Axway Titanium.
 
 ## Requirements
 - Titanium SDK 6.2.0 or later
