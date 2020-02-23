@@ -536,7 +536,7 @@ properties:
     type: String,
     platforms: [android]
 
-  - name: reasonSubtitle
+  - name: reasonText
     optional: true
     summary: |
         Text of the authentication dialog (3rd line).
@@ -578,12 +578,12 @@ properties:
 
   - name: cancelTitle
     summary: |
-        Note: This property is iOS only!
-
         Allows cancel button title customization. A default localized title "Cancel"
         is used when this property is not defined or is set to empty string.
+        Android: The default value will be "Cancel".
     type: String
     since: "6.1.0"
+    platforms: [android, ios],
     osver: {ios: {min: "10.0"}}
 
   - name: keepAlive
