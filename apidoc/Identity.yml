@@ -533,14 +533,14 @@ properties:
     optional: true
     summary: |
         Subtitle of the authentication dialog (2nd line).
-    type: String,
+    type: String
     platforms: [android]
 
   - name: reasonText
     optional: true
     summary: |
         Text of the authentication dialog (3rd line).
-    type: String,
+    type: String
     platforms: [android]
 
   - name: allowableReuseDuration
