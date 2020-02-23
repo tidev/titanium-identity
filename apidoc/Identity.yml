@@ -56,7 +56,7 @@ description: |
         } else if (TiIdentity.biometryType === TiIdentity.BIOMETRY_TYPE_TOUCH_ID) { // Touch ID
             authPhrase = 'Touch ID';
         }
-        
+
     ## Face ID Requirements (iOS only)
 
     For Face ID to work properly, you need to add a **`<key>`** item to the
@@ -525,11 +525,23 @@ properties:
   - name: reason
     optional: false
     summary: |
-        Note: This property is iOS only!
-
         Message displayed in the authentication dialog describing why the
-        application is requesting authentication.
+        application is requesting authentication. Android: The title of the dialog.
     type: String
+
+  - name: reasonSubtitle
+    optional: true
+    summary: |
+        Subtitle of the authentication dialog (2nd line).
+    type: String,
+    platforms: [android]
+
+  - name: reasonSubtitle
+    optional: true
+    summary: |
+        Text of the authentication dialog (3rd line).
+    type: String,
+    platforms: [android]
 
   - name: allowableReuseDuration
     summary: |
