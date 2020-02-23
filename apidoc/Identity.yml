@@ -583,7 +583,7 @@ properties:
         Android: The default value will be "Cancel".
     type: String
     since: "6.1.0"
-    platforms: [android, ios],
+    platforms: [android, iphone, ipad]
     osver: {ios: {min: "10.0"}}
 
   - name: keepAlive
