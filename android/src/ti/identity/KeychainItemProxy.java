@@ -157,7 +157,9 @@ public class KeychainItemProxy extends KrollProxy
 				};
 
 				final BiometricPrompt.PromptInfo.Builder promptInfo = new BiometricPrompt.PromptInfo.Builder();
-				promptInfo.setTitle("Scan Fingerprint");
+				promptInfo.setTitle(TitaniumIdentityModule.reason);
+				promptInfo.setSubtitle(TitaniumIdentityModule.reasonSubtitle);
+				promptInfo.setDescription(TitaniumIdentityModule.reasonText);
 				promptInfo.setNegativeButtonText("Cancel");
 				biometricPromptInfo = promptInfo.build();
 			}
