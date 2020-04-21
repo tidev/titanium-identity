@@ -53,6 +53,7 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 	private KrollObject krollObject;
 	protected boolean mSelfCancelled;
 	private boolean mGeneratedKey = false;
+	private String status;
 
 	@SuppressWarnings("NewApi")
 	public FingerPrintHelper()
@@ -106,32 +107,34 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 	public void startListening(KrollFunction callback, KrollObject obj)
 	{
 		if (!isDeviceSupported()) {
-			return;
-		}
-
-		try {
-			if (initCipher()) {
-				mCryptoObject = new BiometricPrompt.CryptoObject(mCipher);
-			} else {
+			this.callback = callback;
+			this.krollObject = obj;
+			startDeviceCredentials();
+		} else {
+			try {
+				if (initCipher()) {
+					mCryptoObject = new BiometricPrompt.CryptoObject(mCipher);
+				} else {
+					Log.e(TAG, "Unable to initialize cipher");
+				}
+			} catch (Exception e) {
 				Log.e(TAG, "Unable to initialize cipher");
 			}
-		} catch (Exception e) {
-			Log.e(TAG, "Unable to initialize cipher");
+
+			this.callback = callback;
+			this.krollObject = obj;
+
+			mSelfCancelled = false;
+
+			final BiometricPrompt.PromptInfo.Builder promptInfo = new BiometricPrompt.PromptInfo.Builder();
+			promptInfo.setTitle("Scan Fingerprint");
+			promptInfo.setNegativeButtonText("Cancel");
+
+			final Executor executor = Executors.newSingleThreadExecutor();
+			final BiometricPrompt prompt =
+				new BiometricPrompt((FragmentActivity) TiApplication.getAppCurrentActivity(), executor, this);
+			prompt.authenticate(promptInfo.build(), mCryptoObject);
 		}
-
-		this.callback = callback;
-		this.krollObject = obj;
-
-		mSelfCancelled = false;
-
-		final BiometricPrompt.PromptInfo.Builder promptInfo = new BiometricPrompt.PromptInfo.Builder();
-		promptInfo.setTitle("Scan Fingerprint");
-		promptInfo.setNegativeButtonText("Cancel");
-
-		final Executor executor = Executors.newSingleThreadExecutor();
-		final BiometricPrompt prompt =
-			new BiometricPrompt((FragmentActivity) TiApplication.getAppCurrentActivity(), executor, this);
-		prompt.authenticate(promptInfo.build(), mCryptoObject);
 	}
 
 	private void onError(String errMsg)
@@ -178,7 +181,15 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 	@Override
 	public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result)
 	{
-		tryEncrypt();
+		if (!isDeviceSupported()) {
+			if (callback != null && krollObject != null) {
+				KrollDict dict = new KrollDict();
+				dict.put("success", true);
+				callback.callAsync(krollObject, dict);
+			}
+		} else {
+			tryEncrypt();
+		}
 	}
 
 	/**
@@ -241,10 +252,10 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 			// ignore, error gracefully
 		}
 
-		if (!hardwareDetected) {
+		if (!hardwareDetected && policy == TitaniumIdentityModule.AUTHENTICATION_POLICY_PASSCODE) {
 			error = error + "Hardware not detected";
 		}
-		if (policy == TitaniumIdentityModule.AUTHENTICATION_POLICY_PASSCODE && !hasPasscode) {
+		if (policy != TitaniumIdentityModule.AUTHENTICATION_POLICY_PASSCODE && !hasPasscode) {
 			if (error.isEmpty()) {
 				error = error + "Device is not secure, passcode not set";
 			} else {
@@ -271,5 +282,24 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 			}
 		}
 		return response;
+	}
+
+	private void startDeviceCredentials()
+	{
+		KrollDict response = new KrollDict();
+		response = deviceCanAuthenticate(TitaniumIdentityModule.AUTHENTICATION_POLICY_BIOMETRICS);
+		if (response.getBoolean("canAuthenticate")) {
+			Executor executor = Executors.newSingleThreadExecutor();
+			BiometricPrompt biometricPrompt =
+				new BiometricPrompt((FragmentActivity) TiApplication.getAppCurrentActivity(), executor, this);
+			BiometricPrompt.PromptInfo promptInfo = new BiometricPrompt.PromptInfo.Builder()
+														.setTitle("Enter your device credentials")
+														.setDeviceCredentialAllowed(true)
+														.build();
+			biometricPrompt.authenticate(promptInfo);
+		} else if (response.containsKey("error")) {
+			status = response.getString("error");
+			onError(status);
+		}
 	}
 }

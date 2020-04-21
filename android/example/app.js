@@ -12,11 +12,6 @@ win.add(btn);
 win.open();
 
 btn.addEventListener('click', function(){
-
-	if (!TiIdentity.isSupported()) {
-		alert("Touch ID is not supported on this device!");
-		return;
-	}
 	
 	TiIdentity.authenticate({
 		reason: 'We need your fingerprint to continue.',
