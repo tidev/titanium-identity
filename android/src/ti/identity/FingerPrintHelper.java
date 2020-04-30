@@ -53,7 +53,7 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 	private KrollObject krollObject;
 	protected boolean mSelfCancelled;
 	private boolean mGeneratedKey = false;
-	private String status;
+	private boolean mDeviceCredential;
 
 	@SuppressWarnings("NewApi")
 	public FingerPrintHelper()
@@ -79,7 +79,14 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 	protected boolean isDeviceSupported()
 	{
 		if (Build.VERSION.SDK_INT >= 23 && mBiometricManager != null) {
-			return mBiometricManager.canAuthenticate() == BiometricManager.BIOMETRIC_SUCCESS;
+			if (mBiometricManager.canAuthenticate() == BiometricManager.BIOMETRIC_SUCCESS) {
+				mDeviceCredential = false;
+				return true;
+			} else if (mBiometricManager.canAuthenticate() == BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE
+					   || mBiometricManager.canAuthenticate() == BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED) {
+				mDeviceCredential = true;
+				return true;
+			}
 		}
 		return false;
 	}
@@ -106,7 +113,7 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 	@SuppressLint("MissingPermission,NewApi")
 	public void startListening(KrollFunction callback, KrollObject obj)
 	{
-		if (!isDeviceSupported()) {
+		if (mDeviceCredential) {
 			this.callback = callback;
 			this.krollObject = obj;
 			startDeviceCredentials();
@@ -181,7 +188,7 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 	@Override
 	public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result)
 	{
-		if (!isDeviceSupported()) {
+		if (mDeviceCredential) {
 			if (callback != null && krollObject != null) {
 				KrollDict dict = new KrollDict();
 				dict.put("success", true);
@@ -298,8 +305,7 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 														.build();
 			biometricPrompt.authenticate(promptInfo);
 		} else if (response.containsKey("error")) {
-			status = response.getString("error");
-			onError(status);
+			onError(response.getString("error"));
 		}
 	}
 }
