@@ -53,11 +53,16 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 	private KrollObject krollObject;
 	protected boolean mSelfCancelled;
 	private boolean mGeneratedKey = false;
-	private boolean mDeviceCredential;
+	private TitaniumIdentityModule mModule;
 
 	@SuppressWarnings("NewApi")
-	public FingerPrintHelper()
+	public FingerPrintHelper(TitaniumIdentityModule module)
 	{
+		if (module == null) {
+			throw new NullPointerException();
+		}
+
+		mModule = module;
 		final Activity activity = TiApplication.getAppRootOrCurrentActivity();
 
 		mBiometricManager = BiometricManager.from(activity);
@@ -78,19 +83,31 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 
 	protected boolean isDeviceSupported()
 	{
-		if (Build.VERSION.SDK_INT >= 23 && mBiometricManager != null) {
+		return canUseDeviceBiometrics() || canUseDeviceCredentials();
+	}
+
+	private boolean canUseDeviceBiometrics()
+	{
+		if ((Build.VERSION.SDK_INT >= 23) && (mBiometricManager != null)) {
 			if (mBiometricManager.canAuthenticate() == BiometricManager.BIOMETRIC_SUCCESS) {
-				mDeviceCredential = false;
-				return true;
-			} else if (mBiometricManager.canAuthenticate() == BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE
-					   || mBiometricManager.canAuthenticate() == BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED) {
-				mDeviceCredential = true;
 				return true;
 			}
 		}
 		return false;
 	}
 
+	private boolean canUseDeviceCredentials()
+	{
+		if ((Build.VERSION.SDK_INT >= 23) && (mBiometricManager != null)) {
+			if (mModule.getAuthenticationPolicy() == TitaniumIdentityModule.AUTHENTICATION_POLICY_PASSCODE) {
+				try {
+					return mKeyguardManager.isDeviceSecure();
+				} catch (Exception ex) {
+				}
+			}
+		}
+		return false;
+	}
 	public void stopListening()
 	{
 		Iterator cancellationSignalIterator = cancellationSignals.entrySet().iterator();
@@ -113,7 +130,7 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 	@SuppressLint("MissingPermission,NewApi")
 	public void startListening(KrollFunction callback, KrollObject obj)
 	{
-		if (mDeviceCredential) {
+		if (canUseDeviceCredentials()) {
 			this.callback = callback;
 			this.krollObject = obj;
 			startDeviceCredentials();
@@ -188,7 +205,7 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 	@Override
 	public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result)
 	{
-		if (mDeviceCredential) {
+		if (canUseDeviceCredentials()) {
 			if (callback != null && krollObject != null) {
 				KrollDict dict = new KrollDict();
 				dict.put("success", true);
@@ -259,10 +276,10 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 			// ignore, error gracefully
 		}
 
-		if (!hardwareDetected && policy == TitaniumIdentityModule.AUTHENTICATION_POLICY_PASSCODE) {
+		if (!hardwareDetected && policy != TitaniumIdentityModule.AUTHENTICATION_POLICY_PASSCODE) {
 			error = error + "Hardware not detected";
 		}
-		if (policy != TitaniumIdentityModule.AUTHENTICATION_POLICY_PASSCODE && !hasPasscode) {
+		if (policy == TitaniumIdentityModule.AUTHENTICATION_POLICY_PASSCODE && !hasPasscode) {
 			if (error.isEmpty()) {
 				error = error + "Device is not secure, passcode not set";
 			} else {
@@ -294,7 +311,7 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 	private void startDeviceCredentials()
 	{
 		KrollDict response = new KrollDict();
-		response = deviceCanAuthenticate(TitaniumIdentityModule.AUTHENTICATION_POLICY_BIOMETRICS);
+		response = deviceCanAuthenticate(mModule.getAuthenticationPolicy());
 		if (response.getBoolean("canAuthenticate")) {
 			Executor executor = Executors.newSingleThreadExecutor();
 			BiometricPrompt biometricPrompt =
