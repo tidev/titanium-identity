@@ -2,6 +2,3 @@ node_modules
 
 android/build/
 
-# These should eventually be linted as well
-android/example/
-ios/example/
