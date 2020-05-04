@@ -144,7 +144,7 @@ methods:
     summary: Determines if the current device supports Touch ID or Face ID.
     description: | 
         This module is only supported on Android 6.0 or newer. So, this method always returns
-        'false' for the older versions of the android.
+        'false' on older versions of the Android.
 
     returns:
         type: Boolean

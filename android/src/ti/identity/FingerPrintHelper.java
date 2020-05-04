@@ -130,11 +130,7 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 	@SuppressLint("MissingPermission,NewApi")
 	public void startListening(KrollFunction callback, KrollObject obj)
 	{
-		if (canUseDeviceCredentials()) {
-			this.callback = callback;
-			this.krollObject = obj;
-			startDeviceCredentials();
-		} else {
+		if (canUseDeviceBiometrics()) {
 			try {
 				if (initCipher()) {
 					mCryptoObject = new BiometricPrompt.CryptoObject(mCipher);
@@ -158,6 +154,11 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 			final BiometricPrompt prompt =
 				new BiometricPrompt((FragmentActivity) TiApplication.getAppCurrentActivity(), executor, this);
 			prompt.authenticate(promptInfo.build(), mCryptoObject);
+
+		} else if (canUseDeviceCredentials()) {
+			this.callback = callback;
+			this.krollObject = obj;
+			startDeviceCredentials();
 		}
 	}
 
@@ -205,14 +206,14 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 	@Override
 	public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result)
 	{
-		if (canUseDeviceCredentials()) {
+		if (canUseDeviceBiometrics()) {
+			tryEncrypt();
+		} else {
 			if (callback != null && krollObject != null) {
 				KrollDict dict = new KrollDict();
 				dict.put("success", true);
 				callback.callAsync(krollObject, dict);
 			}
-		} else {
-			tryEncrypt();
 		}
 	}
 
