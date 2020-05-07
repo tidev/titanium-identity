@@ -6,9 +6,10 @@
  *
  */
 var TiIdentity = require('ti.identity');
-var isandroid = Ti.Platform.name === 'android';
+var isAndroid = Ti.Platform.name === 'android';
 var isiOS = Ti.Platform.name === 'iOS' || Ti.Platform.name === 'iPhone OS';
 var authPhrase = 'Fingerprint';
+var authMsg = '(None available)';
 var supported =  TiIdentity.isSupported();
 
 var win = Ti.UI.createWindow();
@@ -18,14 +19,14 @@ var win = Ti.UI.createWindow();
 // When calling "authenticate" below
 TiIdentity.setAuthenticationPolicy(TiIdentity.AUTHENTICATION_POLICY_BIOMETRICS);
 
-if (isandroid) {
+if (isAndroid) {
 
 	if (TiIdentity.getAuthenticationPolicy() === TiIdentity.AUTHENTICATION_POLICY_BIOMETRICS) {
 		authPhrase = 'Touch ID';
 	} else if (TiIdentity.getAuthenticationPolicy() === TiIdentity.AUTHENTICATION_POLICY_PASSCODE) {
 		authPhrase = 'Device Passcode';
 	} else {
-		authPhrase = '(None available)';
+		authPhrase = authMsg;
 	}
 }
 
@@ -35,7 +36,7 @@ if (isiOS) {
 	} else if (TiIdentity.biometryType === TiIdentity.BIOMETRY_TYPE_TOUCH_ID) {
 		authPhrase = 'Touch ID';
 	} else {
-		authPhrase = '(None available)';
+		authPhrase = authMsg;
 	}
 
 }
