@@ -144,8 +144,11 @@ public class TitaniumIdentityModule extends KrollModule
 		}
 		if (params.containsKey("callback")) {
 			Object callback = params.get("callback");
+			String title = (String) params.get("title");
+			String subTitle = (String) params.get("subTitle");
+			String cancelRaison = (String) params.get("cancelRaison");
 			if (callback instanceof KrollFunction) {
-				mfingerprintHelper.startListening((KrollFunction) callback, getKrollObject());
+				mfingerprintHelper.startListening((KrollFunction) callback, title, subTitle, cancelRaison, getKrollObject());
 			}
 		}
 	}

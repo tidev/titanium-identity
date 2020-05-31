@@ -103,7 +103,7 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 	}
 
 	@SuppressLint("MissingPermission,NewApi")
-	public void startListening(KrollFunction callback, KrollObject obj)
+	public void startListening(KrollFunction callback, String title, String subtitle, String negativeButtonText, KrollObject obj)
 	{
 		if (!isDeviceSupported()) {
 			return;
@@ -125,8 +125,23 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 		mSelfCancelled = false;
 
 		final BiometricPrompt.PromptInfo.Builder promptInfo = new BiometricPrompt.PromptInfo.Builder();
-		promptInfo.setTitle("Scan Fingerprint");
-		promptInfo.setNegativeButtonText("Cancel");
+
+		if (title != null){
+			promptInfo.setTitle(title);
+		} else{
+			promptInfo.setTitle("Scan Fingerprint");
+		}
+
+		if (subtitle != null){
+			promptInfo.setSubtitle(subtitle);
+		}
+
+		if(negativeButtonText != null){
+			promptInfo.setNegativeButtonText(negativeButtonText);
+		}else{
+			promptInfo.setNegativeButtonText("Cancel");
+		}
+
 
 		final Executor executor = Executors.newSingleThreadExecutor();
 		final BiometricPrompt prompt =
