@@ -220,8 +220,13 @@ describe('ti.identity', () => {
 				});
 
 				it('returns an Object', () => {
-					// TODO: Test has 'canAuthenticate' boolean, possible 'error' string properties
 					expect(Identity.deviceCanAuthenticate()).toEqual(jasmine.any(Object));
+				});
+
+				it('check value of canAuthenticate after assignement', () => {
+					var result = Identity.deviceCanAuthenticate();
+					result.canAuthenticate = true;
+					expect(result.canAuthenticate).toEqual(true);
 				});
 			});
 
