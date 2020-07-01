@@ -16,26 +16,32 @@ description: |
     Add the module as a dependency to your application by adding a **`<module>`** item to the
     **`<modules>`** element of your `tiapp.xml` file:
 
-        <ti:app>
-          ...
-          <modules>
-            <module platform="iphone">ti.identity</module>
-          </modules>
-          ...
-        </ti:app>
+    ``` xml
+    <ti:app>
+      <!-- ... -->
+      <modules>
+        <module platform="iphone">ti.identity</module>
+      </modules>
+      <!-- ... -->
+    </ti:app>
+    ```
 
     Use `require()` to access the module from JavaScript:
 
-        var Identity = require('ti.identity');
+    ``` javascript
+    var Identity = require('ti.identity');
+    ```
 
     The `Identity` variable is a reference to the module. Make API calls using this reference:
 
-        Identity.authenticate({
-            reason: 'Verify to modify personal settings',
-            callback: function(e) {
-                Ti.API.info(e);
-            }
-        });
+    ``` javascript
+    Identity.authenticate({
+        reason: 'Verify to modify personal settings',
+        callback: function(e) {
+            Ti.API.info(e);
+        }
+    });
+    ```
 
     ### Lifetime Notes (iOS-only)
 
@@ -49,33 +55,37 @@ description: |
     Use the <Modules.Identity.biometryType> to receive the currently used biometry type. See an example of
     using the property to create a personalized interface when using Touch ID and Face ID:
 
-        var authPhrase = 'Unknown';
+    ``` javascript
+    var authPhrase = 'Unknown';
 
-        if (TiIdentity.biometryType === TiIdentity.BIOMETRY_TYPE_FACE_ID) { // Face ID
-            authPhrase = 'Face ID';
-        } else if (TiIdentity.biometryType === TiIdentity.BIOMETRY_TYPE_TOUCH_ID) { // Touch ID
-            authPhrase = 'Touch ID';
-        }
+    if (TiIdentity.biometryType === TiIdentity.BIOMETRY_TYPE_FACE_ID) { // Face ID
+        authPhrase = 'Face ID';
+    } else if (TiIdentity.biometryType === TiIdentity.BIOMETRY_TYPE_TOUCH_ID) { // Touch ID
+        authPhrase = 'Touch ID';
+    }
+    ```
         
     ## Face ID Requirements (iOS only)
 
     For Face ID to work properly, you need to add a **`<key>`** item to the
     **`<plist>`** element of your `tiapp.xml` file:
 
-        <ti:app>
-          ...
-          <ios>
-            ...
-            <plist>
-              <dict>
-                <key>NSFaceIDUsageDescription</key>
-                <string>Why you need Face ID.</string>
-              </dict>
-            </plist>
-            ...
-          </ios>
-          ...
-        </ti:app>
+    ``` xml
+    <ti:app>
+      <!-- ... -->
+      <ios>
+        <!-- ... -->
+        <plist>
+          <dict>
+            <key>NSFaceIDUsageDescription</key>
+            <string>Why you need Face ID.</string>
+          </dict>
+        </plist>
+        <!-- ... -->
+      </ios>
+      <!-- ... -->
+    </ti:app>
+    ```
 
     ### Native Keychain Integration
 
@@ -85,7 +95,6 @@ description: |
 
     The module contains a sample application in the
     `<TITANIUM_SDK_HOME>/modules/iphone/ti.identity/<VERSION>/example/` folder.
-
 methods:
   - name: createKeychainItem
     summary: Create KeychainItem.
@@ -120,7 +129,6 @@ methods:
         used for policy evaluation and an attempt to do so will fail with <Modules.Identity.ERROR_INVALID_CONTEXT>.
 
         See the "Lifetime Notes (iOS-only)" paragraph in the module paragraph for more infos.
-
     platforms: [iphone, ipad, android]
     since: "6.1.0"
 
@@ -130,13 +138,16 @@ methods:
         On Android this takes into account the `authenticationPolicy`.
 
         Example:
-            var Identity = require("ti.identity");
-            var result = Identity.deviceCanAuthenticate();
-            if (!result.canAuthenticate) {
-                alert('Message: ' + result.error + '\nCode: ' + result.code);
-            } else {
-                alert('Device can authenticate');
-            }
+
+        ``` javascript
+        var Identity = require("ti.identity");
+        var result = Identity.deviceCanAuthenticate();
+        if (!result.canAuthenticate) {
+            alert('Message: ' + result.error + '\nCode: ' + result.code);
+        } else {
+            alert('Device can authenticate');
+        }
+        ```
     returns:
         type: DeviceCanAuthenticateResult
 

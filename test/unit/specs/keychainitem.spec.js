@@ -3,6 +3,39 @@ const Identity = require('ti.identity');
 
 let KeychainItem;
 
+function save (password, finish) {
+	function save(obj) {
+		KeychainItem.removeEventListener('save', save);
+		try {
+			expect(obj.success).toEqual(true);
+			expect(obj.code).toEqual(0);
+			expect(obj.identifier).toEqual('password');
+			finish();
+		} catch (err) {
+			finish(err);
+		}
+	}
+	KeychainItem.addEventListener('save', save);
+	KeychainItem.save(password);
+}
+
+function update (password, finish) {
+	function update(obj) {
+		KeychainItem.removeEventListener('update', update);
+		try {
+			expect(obj.success).toEqual(true);
+			expect(obj.code).toEqual(0);
+			expect(obj.identifier).toEqual('password');
+			finish();
+		} catch (err) {
+			finish(err);
+		}
+	}
+
+	KeychainItem.addEventListener('update', update);
+	KeychainItem.update(password);
+}
+
 describe('ti.identity.KeychainItem', () => {
 	it('can be created', () => {
 		KeychainItem = Identity.createKeychainItem({ identifier: 'password' });
@@ -26,20 +59,7 @@ describe('ti.identity.KeychainItem', () => {
 					KeychainItem.removeEventListener('reset', reset);
 
 					// Now save the value
-					function save(obj) {
-						KeychainItem.removeEventListener('save', save);
-						try {
-							expect(obj.success).toEqual(true);
-							expect(obj.code).toEqual(0);
-							expect(obj.identifier).toEqual('password');
-							finish();
-						} catch (err) {
-							finish(err);
-						}
-					}
-
-					KeychainItem.addEventListener('save', save);
-					KeychainItem.save('s3cr3t_p4$$w0rd');
+					save('s3cr3t_p4$$w0rd', finish);
 				}
 				KeychainItem.addEventListener('reset', reset);
 				KeychainItem.reset();
@@ -64,8 +84,6 @@ describe('ti.identity.KeychainItem', () => {
 				});
 			}
 
-			// TODO: Test with other types like numbers?
-
 			it('throws with no arguments', () => {
 				function foo () {
 					KeychainItem.save();
@@ -82,6 +100,7 @@ describe('ti.identity.KeychainItem', () => {
 
 			it('fires read event with value', finish => {
 				function read (obj) {
+					KeychainItem.removeEventListener('read', read);
 					try {
 						expect(obj.success).toEqual(true);
 						expect(obj.code).toEqual(0);
@@ -95,7 +114,23 @@ describe('ti.identity.KeychainItem', () => {
 				KeychainItem.addEventListener('read', read);
 				KeychainItem.read();
 			});
-			// TODO: Reset and then read?
+
+			it('reset values and then check if it exists', finish => {
+				function reset(obj) {
+					KeychainItem.removeEventListener('reset', reset);
+
+					KeychainItem.fetchExistence(e => {
+						try {
+							expect(e.exists).toEqual(false);
+							finish();
+						} catch (err) {
+							finish(err);
+						}
+					});
+				}
+				KeychainItem.addEventListener('reset', reset);
+				KeychainItem.reset();
+			});
 		});
 
 		describe('#update()', () => {
@@ -103,21 +138,22 @@ describe('ti.identity.KeychainItem', () => {
 				expect(KeychainItem.update).toEqual(jasmine.any(Function));
 			});
 
-			it('does not throw when invoked with no arguments', finish => {
-				function update(obj) {
-					KeychainItem.removeEventListener('update', update);
-					try {
-						expect(obj.success).toEqual(true);
-						expect(obj.code).toEqual(0);
-						expect(obj.identifier).toEqual('password');
-						finish();
-					} catch (err) {
-						finish(err);
+			it('does not throw when invoked with no arguments', function () {
+				// First save value
+				KeychainItem.save('s3cr3t_p4$$w0rd', function (e) {
+					function update(obj) {
+						KeychainItem.removeEventListener('update', update);
+						try {
+							expect(obj.success).toEqual(true);
+							expect(obj.code).toEqual(0);
+							expect(obj.identifier).toEqual('password');
+						} catch (err) {
+							Ti.API.info(err);
+						}
 					}
-				}
-
-				KeychainItem.addEventListener('update', update);
-				KeychainItem.update('new_p455w0rd');
+					KeychainItem.addEventListener('update', update);
+					KeychainItem.update('new_s3cr3t_p4$$w0rd');
+				});
 			});
 		});
 
@@ -128,7 +164,15 @@ describe('ti.identity.KeychainItem', () => {
 
 			it('returns undefined', () => {
 				expect(KeychainItem.reset()).not.toBeDefined();
-				// TODO: Verify it "resets" the value?
+				KeychainItem.reset(function (e) {
+					KeychainItem.fetchExistence(e => {
+						try {
+							expect(e.exists).toEqual(false);
+						} catch (err) {
+							Ti.API.info(err);
+						}
+					});
+				});
 			});
 		});
 
