@@ -53,10 +53,16 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 	private KrollObject krollObject;
 	protected boolean mSelfCancelled;
 	private boolean mGeneratedKey = false;
+	private TitaniumIdentityModule mModule;
 
 	@SuppressWarnings("NewApi")
-	public FingerPrintHelper()
+	public FingerPrintHelper(TitaniumIdentityModule module)
 	{
+		if (module == null) {
+			throw new NullPointerException();
+		}
+
+		mModule = module;
 		final Activity activity = TiApplication.getAppRootOrCurrentActivity();
 
 		mBiometricManager = BiometricManager.from(activity);
@@ -77,12 +83,31 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 
 	protected boolean isDeviceSupported()
 	{
-		if (Build.VERSION.SDK_INT >= 23 && mBiometricManager != null) {
-			return mBiometricManager.canAuthenticate() == BiometricManager.BIOMETRIC_SUCCESS;
+		return canUseDeviceBiometrics() || canUseDeviceCredentials();
+	}
+
+	private boolean canUseDeviceBiometrics()
+	{
+		if ((Build.VERSION.SDK_INT >= 23) && (mBiometricManager != null)) {
+			if (mBiometricManager.canAuthenticate() == BiometricManager.BIOMETRIC_SUCCESS) {
+				return true;
+			}
 		}
 		return false;
 	}
 
+	private boolean canUseDeviceCredentials()
+	{
+		if ((Build.VERSION.SDK_INT >= 23) && (mBiometricManager != null)) {
+			if (mModule.getAuthenticationPolicy() == TitaniumIdentityModule.AUTHENTICATION_POLICY_PASSCODE) {
+				try {
+					return mKeyguardManager.isDeviceSecure();
+				} catch (Exception ex) {
+				}
+			}
+		}
+		return false;
+	}
 	public void stopListening()
 	{
 		Iterator cancellationSignalIterator = cancellationSignals.entrySet().iterator();
@@ -105,33 +130,36 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 	@SuppressLint("MissingPermission,NewApi")
 	public void startListening(KrollFunction callback, KrollObject obj)
 	{
-		if (!isDeviceSupported()) {
-			return;
-		}
-
-		try {
-			if (initCipher()) {
-				mCryptoObject = new BiometricPrompt.CryptoObject(mCipher);
-			} else {
+		if (canUseDeviceBiometrics()) {
+			try {
+				if (initCipher()) {
+					mCryptoObject = new BiometricPrompt.CryptoObject(mCipher);
+				} else {
+					Log.e(TAG, "Unable to initialize cipher");
+				}
+			} catch (Exception e) {
 				Log.e(TAG, "Unable to initialize cipher");
 			}
-		} catch (Exception e) {
-			Log.e(TAG, "Unable to initialize cipher");
+
+			this.callback = callback;
+			this.krollObject = obj;
+
+			mSelfCancelled = false;
+
+			final BiometricPrompt.PromptInfo.Builder promptInfo = new BiometricPrompt.PromptInfo.Builder();
+			promptInfo.setTitle("Scan Fingerprint");
+			promptInfo.setNegativeButtonText("Cancel");
+
+			final Executor executor = Executors.newSingleThreadExecutor();
+			final BiometricPrompt prompt =
+				new BiometricPrompt((FragmentActivity) TiApplication.getAppCurrentActivity(), executor, this);
+			prompt.authenticate(promptInfo.build(), mCryptoObject);
+
+		} else if (canUseDeviceCredentials()) {
+			this.callback = callback;
+			this.krollObject = obj;
+			startDeviceCredentials();
 		}
-
-		this.callback = callback;
-		this.krollObject = obj;
-
-		mSelfCancelled = false;
-
-		final BiometricPrompt.PromptInfo.Builder promptInfo = new BiometricPrompt.PromptInfo.Builder();
-		promptInfo.setTitle("Scan Fingerprint");
-		promptInfo.setNegativeButtonText("Cancel");
-
-		final Executor executor = Executors.newSingleThreadExecutor();
-		final BiometricPrompt prompt =
-			new BiometricPrompt((FragmentActivity) TiApplication.getAppCurrentActivity(), executor, this);
-		prompt.authenticate(promptInfo.build(), mCryptoObject);
 	}
 
 	private void onError(String errMsg)
@@ -178,7 +206,15 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 	@Override
 	public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result)
 	{
-		tryEncrypt();
+		if (canUseDeviceBiometrics()) {
+			tryEncrypt();
+		} else {
+			if (callback != null && krollObject != null) {
+				KrollDict dict = new KrollDict();
+				dict.put("success", true);
+				callback.callAsync(krollObject, dict);
+			}
+		}
 	}
 
 	/**
@@ -241,7 +277,7 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 			// ignore, error gracefully
 		}
 
-		if (!hardwareDetected) {
+		if (!hardwareDetected && policy != TitaniumIdentityModule.AUTHENTICATION_POLICY_PASSCODE) {
 			error = error + "Hardware not detected";
 		}
 		if (policy == TitaniumIdentityModule.AUTHENTICATION_POLICY_PASSCODE && !hasPasscode) {
@@ -271,5 +307,23 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 			}
 		}
 		return response;
+	}
+
+	private void startDeviceCredentials()
+	{
+		KrollDict response = new KrollDict();
+		response = deviceCanAuthenticate(mModule.getAuthenticationPolicy());
+		if (response.getBoolean("canAuthenticate")) {
+			Executor executor = Executors.newSingleThreadExecutor();
+			BiometricPrompt biometricPrompt =
+				new BiometricPrompt((FragmentActivity) TiApplication.getAppCurrentActivity(), executor, this);
+			BiometricPrompt.PromptInfo promptInfo = new BiometricPrompt.PromptInfo.Builder()
+														.setTitle("Enter your device credentials")
+														.setDeviceCredentialAllowed(true)
+														.build();
+			biometricPrompt.authenticate(promptInfo);
+		} else if (response.containsKey("error")) {
+			onError(response.getString("error"));
+		}
 	}
 }

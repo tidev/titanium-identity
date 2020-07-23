@@ -114,6 +114,7 @@ describe('ti.identity.KeychainItem', () => {
 				KeychainItem.addEventListener('read', read);
 				KeychainItem.read();
 			});
+
 			it('reset values and then check if it exists', finish => {
 				function reset(obj) {
 					KeychainItem.removeEventListener('reset', reset);

@@ -116,7 +116,7 @@ public class TitaniumIdentityModule extends KrollModule
 	{
 		if (Build.VERSION.SDK_INT >= 23) {
 			try {
-				mfingerprintHelper = new FingerPrintHelper();
+				mfingerprintHelper = new FingerPrintHelper(this);
 			} catch (Exception e) {
 				mfingerprintHelper = null;
 				fingerprintHelperException = e.getCause();

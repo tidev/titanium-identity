@@ -226,6 +226,7 @@ describe('ti.identity', () => {
 				it('check value of canAuthenticate after assignement', () => {
 					var result = Identity.deviceCanAuthenticate();
 					result.canAuthenticate = true;
+
 					expect(result.canAuthenticate).toEqual(true);
 				});
 			});
