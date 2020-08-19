@@ -134,13 +134,10 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 	{
 		if (canUseDeviceBiometrics()) {
 			try {
-				if (initCipher()) {
-					mCryptoObject = new BiometricPrompt.CryptoObject(mCipher);
-				} else {
-					Log.e(TAG, "Unable to initialize cipher");
-				}
+				initCipher();
+				mCryptoObject = new BiometricPrompt.CryptoObject(mCipher);
 			} catch (Exception e) {
-				Log.e(TAG, "Unable to initialize cipher");
+				Log.e(TAG, "Unable to initialize cipher: " + e.getMessage());
 			}
 			this.callback = callback;
 			this.krollObject = obj;
@@ -249,32 +246,28 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 		}
 	}
 
-	private boolean initCipher() throws Exception
+	private void initCipher() throws Exception
 	{
-		SecretKey key = null;
 		try {
-			createKey();
-			key = (SecretKey) mKeyStore.getKey(KEY_NAME, null);
-			mCipher.init(Cipher.ENCRYPT_MODE, key);
-			return true;
-		} catch (KeyPermanentlyInvalidatedException e) {
-			processInvalidKey(key);
-			return true;
-		} catch (Exception e) {
-			throw new RuntimeException("Failed to init Cipher", e);
-		}
-	}
 
-	private void processInvalidKey(SecretKey key)
-	{
-		try {
+			// Create or obtain key.
+			createKey();
+
+			// Initialize cipher.
+			final SecretKey key = (SecretKey) mKeyStore.getKey(KEY_NAME, null);
+			mCipher.init(Cipher.ENCRYPT_MODE, key);
+
+		} catch (KeyPermanentlyInvalidatedException e) {
+
+			// Remove invalidated key.
 			mGeneratedKey = false;
 			mKeyStore.deleteEntry(KEY_NAME);
-			createKey();
-			key = (SecretKey) mKeyStore.getKey(KEY_NAME, null);
-			mCipher.init(Cipher.ENCRYPT_MODE, key);
+
+			// Attempt to re-initialize.
+			initCipher();
+
 		} catch (Exception e) {
-			Log.e(TAG, e.getMessage());
+			throw new RuntimeException("Failed to init Cipher", e);
 		}
 	}
 
