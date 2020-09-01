@@ -15,4 +15,4 @@ name: titanium-identity
 moduleid: ti.identity
 guid: ae6ffc93-6e6e-4251-8373-b0cb263a1662
 platform: iphone
-minsdk: 6.2.0
+minsdk: 9.2.0
