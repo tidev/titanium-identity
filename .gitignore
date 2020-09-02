@@ -14,6 +14,5 @@ android/dist
 /android/java-sources.txt
 
 /ios/metadata.json
-ios/TouchID.xcodeproj/xcuserdata
-ios/TouchID.xcodeproj/project.xcworkspace/xcuserdata
 ios/titanium-identity.xcodeproj/project.xcworkspace/*
+ios/titanium-identity.xcodeproj/xcuserdata/
