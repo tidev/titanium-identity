@@ -12,6 +12,7 @@ import android.app.KeyguardManager;
 import android.os.Build;
 import android.os.CancellationSignal;
 import android.security.keystore.KeyGenParameterSpec;
+import android.security.keystore.KeyPermanentlyInvalidatedException;
 import android.security.keystore.KeyProperties;
 import android.util.Base64;
 
@@ -35,6 +36,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.Optional;
 
 public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 {
@@ -132,15 +134,11 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 	{
 		if (canUseDeviceBiometrics()) {
 			try {
-				if (initCipher()) {
-					mCryptoObject = new BiometricPrompt.CryptoObject(mCipher);
-				} else {
-					Log.e(TAG, "Unable to initialize cipher");
-				}
+				initCipher();
+				mCryptoObject = new BiometricPrompt.CryptoObject(mCipher);
 			} catch (Exception e) {
-				Log.e(TAG, "Unable to initialize cipher");
+				Log.e(TAG, "Unable to initialize cipher: " + e.getMessage());
 			}
-
 			this.callback = callback;
 			this.krollObject = obj;
 
@@ -154,7 +152,6 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 			final BiometricPrompt prompt =
 				new BiometricPrompt((FragmentActivity) TiApplication.getAppCurrentActivity(), executor, this);
 			prompt.authenticate(promptInfo.build(), mCryptoObject);
-
 		} else if (canUseDeviceCredentials()) {
 			this.callback = callback;
 			this.krollObject = obj;
@@ -249,14 +246,29 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 		}
 	}
 
-	private boolean initCipher() throws Exception
+	private void initCipher() throws Exception
 	{
-		if (!mGeneratedKey) {
+		try {
+
+			// Create or obtain key.
 			createKey();
-			SecretKey key = (SecretKey) mKeyStore.getKey(KEY_NAME, null);
+
+			// Initialize cipher.
+			final SecretKey key = (SecretKey) mKeyStore.getKey(KEY_NAME, null);
 			mCipher.init(Cipher.ENCRYPT_MODE, key);
+
+		} catch (KeyPermanentlyInvalidatedException e) {
+
+			// Remove invalidated key.
+			mGeneratedKey = false;
+			mKeyStore.deleteEntry(KEY_NAME);
+
+			// Attempt to re-initialize.
+			initCipher();
+
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to init Cipher", e);
 		}
-		return true;
 	}
 
 	@SuppressWarnings("NewApi")
