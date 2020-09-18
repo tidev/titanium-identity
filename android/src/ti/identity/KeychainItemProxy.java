@@ -6,25 +6,16 @@
  */
 package ti.identity;
 
-import org.appcelerator.kroll.KrollFunction;
-import org.appcelerator.kroll.common.Log;
-import org.appcelerator.kroll.annotations.Kroll;
-import org.appcelerator.kroll.KrollDict;
-import org.appcelerator.kroll.KrollProxy;
-import org.appcelerator.titanium.TiApplication;
-
 import android.app.KeyguardManager;
 import android.content.Context;
 import android.os.Build;
 import android.security.keystore.KeyGenParameterSpec;
-import android.security.keystore.KeyProperties;
 import android.security.keystore.KeyPermanentlyInvalidatedException;
-
+import android.security.keystore.KeyProperties;
 import androidx.biometric.BiometricManager;
 import androidx.biometric.BiometricPrompt;
 import androidx.biometric.BiometricPrompt.AuthenticationCallback;
 import androidx.fragment.app.FragmentActivity;
-
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -38,12 +29,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
+import org.appcelerator.kroll.KrollDict;
+import org.appcelerator.kroll.KrollFunction;
+import org.appcelerator.kroll.KrollProxy;
+import org.appcelerator.kroll.annotations.Kroll;
+import org.appcelerator.kroll.common.Log;
+import org.appcelerator.titanium.TiApplication;
 
 @Kroll.proxy(creatableInModule = TitaniumIdentityModule.class)
 public class KeychainItemProxy extends KrollProxy
@@ -171,34 +167,30 @@ public class KeychainItemProxy extends KrollProxy
 		}
 	}
 
-	@Kroll
-		.getProperty
-		@Kroll.method
-		public int getAccessibilityMode()
+	@Kroll.getProperty
+	@Kroll.method
+	public int getAccessibilityMode()
 	{
 		return accessibilityMode;
 	}
 
-	@Kroll
-		.getProperty
-		@Kroll.method
-		public int getAccessControlMode()
+	@Kroll.getProperty
+	@Kroll.method
+	public int getAccessControlMode()
 	{
 		return accessControlMode;
 	}
 
-	@Kroll
-		.getProperty
-		@Kroll.method
-		private String getCipher()
+	@Kroll.getProperty
+	@Kroll.method
+	private String getCipher()
 	{
 		return algorithm + "/" + blockMode + "/" + padding;
 	}
 
-	@Kroll
-		.getProperty
-		@Kroll.method
-		private String getIdentifier()
+	@Kroll.getProperty
+	@Kroll.method
+	private String getIdentifier()
 	{
 		return identifier;
 	}
