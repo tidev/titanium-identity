@@ -87,9 +87,10 @@
 
   __block BOOL isSupported = NO;
 
-  TiThreadPerformOnMainThread(^{
-    isSupported = [[self authContext] canEvaluatePolicy:_authPolicy error:nil];
-  },
+  TiThreadPerformOnMainThread(
+      ^{
+        isSupported = [[self authContext] canEvaluatePolicy:_authPolicy error:nil];
+      },
       YES);
 
   return NUMBOOL(isSupported);
@@ -117,15 +118,16 @@
 
   // Fail when Touch ID is not supported by the current device
   if ([isSupportedDict valueForKey:@"canAuthenticate"] == NUMBOOL(NO)) {
-    TiThreadPerformOnMainThread(^{
-      NSDictionary *event = @{
-        @"error" : [isSupportedDict valueForKey:@"error"],
-        @"code" : [isSupportedDict valueForKey:@"code"],
-        @"success" : NUMBOOL(NO)
-      };
+    TiThreadPerformOnMainThread(
+        ^{
+          NSDictionary *event = @{
+            @"error" : [isSupportedDict valueForKey:@"error"],
+            @"code" : [isSupportedDict valueForKey:@"code"],
+            @"success" : NUMBOOL(NO)
+          };
 
-      [self fireCallback:@"callback" withArg:event withSource:self];
-    },
+          [self fireCallback:@"callback" withArg:event withSource:self];
+        },
         NO);
     return;
   }
@@ -150,47 +152,49 @@
 
   // Display the dialog if the security policy allows it (= device has Touch ID enabled)
   if ([[self authContext] canEvaluatePolicy:_authPolicy error:&authError]) {
-    TiThreadPerformOnMainThread(^{
-      [[self authContext] evaluatePolicy:_authPolicy
-                         localizedReason:reason
-                                   reply:^(BOOL success, NSError *error) {
-                                     NSMutableDictionary *event = [NSMutableDictionary dictionary];
+    TiThreadPerformOnMainThread(
+        ^{
+          [[self authContext] evaluatePolicy:_authPolicy
+                             localizedReason:reason
+                                       reply:^(BOOL success, NSError *error) {
+                                         NSMutableDictionary *event = [NSMutableDictionary dictionary];
 
-                                     if (error != nil) {
-                                       [event setValue:[error localizedDescription] forKey:@"error"];
-                                       [event setValue:NUMINTEGER([error code]) forKey:@"code"];
-                                     }
+                                         if (error != nil) {
+                                           [event setValue:[error localizedDescription] forKey:@"error"];
+                                           [event setValue:NUMINTEGER([error code]) forKey:@"code"];
+                                         }
 
-                                     [event setValue:NUMBOOL(success) forKey:@"success"];
+                                         [event setValue:NUMBOOL(success) forKey:@"success"];
 
-                                     // TIMOB-24489: Use this callback invocation to prevent issues with Kroll-Thread
-                                     // and proxies that open another thread (e.g. Ti.Network)
-                                     [self fireCallback:@"callback" withArg:event withSource:self];
+                                         // TIMOB-24489: Use this callback invocation to prevent issues with Kroll-Thread
+                                         // and proxies that open another thread (e.g. Ti.Network)
+                                         [self fireCallback:@"callback" withArg:event withSource:self];
 
-                                     if (!keepAlive) {
-                                       _authContext = nil;
-                                     }
-                                   }];
-    },
+                                         if (!keepAlive) {
+                                           _authContext = nil;
+                                         }
+                                       }];
+        },
         NO);
 
     return;
   }
 
   // Again, make sure the callback function runs on the main thread
-  TiThreadPerformOnMainThread(^{
-    NSMutableDictionary *event = [NSMutableDictionary dictionary];
-    if (authError != nil) {
-      [event setValue:[authError localizedDescription] forKey:@"error"];
-      [event setValue:NUMINTEGER([authError code]) forKey:@"code"];
-    } else {
-      [event setValue:@"Can not evaluate Touch ID" forKey:@"error"];
-      [event setValue:NUMINTEGER(1) forKey:@"code"];
-    }
+  TiThreadPerformOnMainThread(
+      ^{
+        NSMutableDictionary *event = [NSMutableDictionary dictionary];
+        if (authError != nil) {
+          [event setValue:[authError localizedDescription] forKey:@"error"];
+          [event setValue:NUMINTEGER([authError code]) forKey:@"code"];
+        } else {
+          [event setValue:@"Can not evaluate Touch ID" forKey:@"error"];
+          [event setValue:NUMINTEGER(1) forKey:@"code"];
+        }
 
-    [event setValue:NUMBOOL(NO) forKey:@"success"];
-    [self fireCallback:@"callback" withArg:event withSource:self];
-  },
+        [event setValue:NUMBOOL(NO) forKey:@"success"];
+        [self fireCallback:@"callback" withArg:event withSource:self];
+      },
       NO);
 }
 
