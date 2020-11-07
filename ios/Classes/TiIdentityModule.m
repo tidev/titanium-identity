@@ -91,7 +91,9 @@
   TiThreadPerformOnMainThread(
       ^{
         TiIdentityModule *strongSelf = weakSelf;
-        if (strongSelf == nil) { return; }
+        if (strongSelf == nil) {
+          return;
+        }
 
         isSupported = [[strongSelf authContext] canEvaluatePolicy:strongSelf->_authPolicy error:nil];
       },
@@ -160,28 +162,30 @@
     TiThreadPerformOnMainThread(
         ^{
           TiIdentityModule *strongSelf = weakSelf;
-          if (strongSelf == nil) { return; }
+          if (strongSelf == nil) {
+            return;
+          }
 
           [[strongSelf authContext] evaluatePolicy:strongSelf->_authPolicy
-                             localizedReason:reason
-                                       reply:^(BOOL success, NSError *error) {
-                                         NSMutableDictionary *event = [NSMutableDictionary dictionary];
+                                   localizedReason:reason
+                                             reply:^(BOOL success, NSError *error) {
+                                               NSMutableDictionary *event = [NSMutableDictionary dictionary];
 
-                                         if (error != nil) {
-                                           [event setValue:[error localizedDescription] forKey:@"error"];
-                                           [event setValue:NUMINTEGER([error code]) forKey:@"code"];
-                                         }
+                                               if (error != nil) {
+                                                 [event setValue:[error localizedDescription] forKey:@"error"];
+                                                 [event setValue:NUMINTEGER([error code]) forKey:@"code"];
+                                               }
 
-                                         [event setValue:NUMBOOL(success) forKey:@"success"];
+                                               [event setValue:NUMBOOL(success) forKey:@"success"];
 
-                                         // TIMOB-24489: Use this callback invocation to prevent issues with Kroll-Thread
-                                         // and proxies that open another thread (e.g. Ti.Network)
-                                         [self fireCallback:@"callback" withArg:event withSource:self];
+                                               // TIMOB-24489: Use this callback invocation to prevent issues with Kroll-Thread
+                                               // and proxies that open another thread (e.g. Ti.Network)
+                                               [self fireCallback:@"callback" withArg:event withSource:self];
 
-                                         if (!keepAlive) {
-                                           strongSelf->_authContext = nil;
-                                         }
-                                       }];
+                                               if (!keepAlive) {
+                                                 strongSelf->_authContext = nil;
+                                               }
+                                             }];
         },
         NO);
 
