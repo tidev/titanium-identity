@@ -77,69 +77,88 @@ APSErrorDomain const APSKeychainWrapperErrorDomain = @"com.appcelerator.keychain
 
 - (void)save:(NSString*)value
 {
+    __weak APSKeychainWrapper *weakSelf = self;
+
     [baseAttributes setObject:[value dataUsingEncoding:NSUTF8StringEncoding] forKey:(id)kSecValueData];
     
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        OSStatus status = SecItemAdd((__bridge CFDictionaryRef)baseAttributes, nil);
+        APSKeychainWrapper *strongSelf = weakSelf;
+        if (strongSelf == nil) { return; }
+
+        OSStatus status = SecItemAdd((__bridge CFDictionaryRef)strongSelf->baseAttributes, nil);
         
-        [baseAttributes removeObjectForKey:(id)kSecValueData];
+        [strongSelf->baseAttributes removeObjectForKey:(id)kSecValueData];
 
         if (status == noErr) {
-            [[self delegate] APSKeychainWrapper:self didSaveValueWithResult:@{@"success": @YES, @"identifier": _identifier}];
+            [[strongSelf delegate] APSKeychainWrapper:strongSelf didSaveValueWithResult:@{@"success": @YES, @"identifier": strongSelf->_identifier}];
         } else {
-            [[self delegate] APSKeychainWrapper:self didSaveValueWithError:[APSKeychainWrapper errorFromStatus:status andIdentifier:_identifier]];
+            [[strongSelf delegate] APSKeychainWrapper:strongSelf didSaveValueWithError:[APSKeychainWrapper errorFromStatus:status andIdentifier:strongSelf->_identifier]];
         }
     });
 }
 
 - (void)read
 {
+    __weak APSKeychainWrapper *weakSelf = self;
+
     // Special attributes to fetch data
     [baseAttributes setObject:(id)kSecMatchLimitOne forKey:(id)kSecMatchLimit];
     [baseAttributes setObject:(id)kCFBooleanTrue forKey:(id)kSecReturnData];
     
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        APSKeychainWrapper *strongSelf = weakSelf;
+        if (strongSelf == nil) { return; }
+
         CFTypeRef keychainData = NULL;
+        OSStatus status = SecItemCopyMatching((CFDictionaryRef)(strongSelf->baseAttributes), (CFTypeRef *)&keychainData);
         
-        OSStatus status = SecItemCopyMatching((CFDictionaryRef)(baseAttributes), (CFTypeRef *)&keychainData);
-        
-        [baseAttributes removeObjectForKey:(id)kSecMatchLimit];
-        [baseAttributes removeObjectForKey:(id)kSecReturnData];
+        [strongSelf->baseAttributes removeObjectForKey:(id)kSecMatchLimit];
+        [strongSelf->baseAttributes removeObjectForKey:(id)kSecReturnData];
         
         if (status == noErr) {
             [[self delegate] APSKeychainWrapper:self didReadValueWithResult:@{
                 @"success": @YES,
-                @"identifier": _identifier,
+                @"identifier": strongSelf->_identifier,
                 @"value": [[NSString alloc] initWithData:(__bridge NSData*)keychainData encoding:NSUTF8StringEncoding]
             }];
         } else {
-            [[self delegate] APSKeychainWrapper:self didReadValueWithError:[APSKeychainWrapper errorFromStatus:status andIdentifier:_identifier]];
+            [[strongSelf delegate] APSKeychainWrapper:strongSelf didReadValueWithError:[APSKeychainWrapper errorFromStatus:status andIdentifier:strongSelf->_identifier]];
         }
     });
 }
 
 - (void)update:(NSString*)value
 {
+    __weak APSKeychainWrapper *weakSelf = self;
+
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        OSStatus status = SecItemUpdate((__bridge CFDictionaryRef)baseAttributes, (__bridge CFDictionaryRef)@{(id)kSecValueData: [value dataUsingEncoding:NSUTF8StringEncoding]});
+        APSKeychainWrapper *strongSelf = weakSelf;
+        if (strongSelf == nil) { return; }
+
+        OSStatus status = SecItemUpdate((__bridge CFDictionaryRef)strongSelf->baseAttributes, (__bridge CFDictionaryRef)@{(id)kSecValueData: [value dataUsingEncoding:NSUTF8StringEncoding]});
                 
         if (status == noErr) {
-            [[self delegate] APSKeychainWrapper:self didUpdateValueWithResult:@{@"success": @YES, @"identifier": _identifier}];
+            [[strongSelf delegate] APSKeychainWrapper:strongSelf didUpdateValueWithResult:@{@"success": @YES, @"identifier": strongSelf->_identifier}];
         } else {
-            [[self delegate] APSKeychainWrapper:self didUpdateValueWithError:[APSKeychainWrapper errorFromStatus:status andIdentifier:_identifier]];
+            [[strongSelf delegate] APSKeychainWrapper:strongSelf didUpdateValueWithError:[APSKeychainWrapper errorFromStatus:status andIdentifier:strongSelf->_identifier]];
         }
     });
 }
 
 - (void)reset
 {
+    __weak APSKeychainWrapper *weakSelf = self;
+
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        OSStatus status = SecItemDelete((CFDictionaryRef)baseAttributes);
+        APSKeychainWrapper *strongSelf = weakSelf;
+        if (strongSelf == nil) { return; }
+
+        OSStatus status = SecItemDelete((CFDictionaryRef)strongSelf->baseAttributes);
 
         if (status == noErr) {
-            [[self delegate] APSKeychainWrapper:self didDeleteValueWithResult:@{@"success": @YES, @"identifier": _identifier}];
+            [[strongSelf delegate] APSKeychainWrapper:strongSelf didDeleteValueWithResult:@{@"success": @YES, @"identifier": strongSelf->_identifier}];
         } else {
-            [[self delegate] APSKeychainWrapper:self didDeleteValueWithError:[APSKeychainWrapper errorFromStatus:status andIdentifier:_identifier]];
+            [[strongSelf delegate] APSKeychainWrapper:strongSelf didDeleteValueWithError:[APSKeychainWrapper errorFromStatus:status andIdentifier:strongSelf->_identifier]];
         }
     });
 }

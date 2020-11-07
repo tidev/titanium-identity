@@ -86,10 +86,14 @@
   }
 
   __block BOOL isSupported = NO;
+  __weak TiIdentityModule *weakSelf = self;
 
   TiThreadPerformOnMainThread(
       ^{
-        isSupported = [[self authContext] canEvaluatePolicy:_authPolicy error:nil];
+        TiIdentityModule *strongSelf = weakSelf;
+        if (strongSelf == nil) { return; }
+
+        isSupported = [[strongSelf authContext] canEvaluatePolicy:strongSelf->_authPolicy error:nil];
       },
       YES);
 
@@ -108,6 +112,7 @@
   id fallbackTitle = [args valueForKey:@"fallbackTitle"];
   id cancelTitle = [args valueForKey:@"cancelTitle"];
   BOOL keepAlive = [TiUtils boolValue:@"keepAlive" properties:args def:YES];
+  __weak TiIdentityModule *weakSelf = self;
 
   if (![callback isKindOfClass:[KrollCallback class]]) {
     NSLog(@"[WARN] Ti.Identity: The parameter `callback` in `authenticate` must be a function.");
@@ -154,7 +159,10 @@
   if ([[self authContext] canEvaluatePolicy:_authPolicy error:&authError]) {
     TiThreadPerformOnMainThread(
         ^{
-          [[self authContext] evaluatePolicy:_authPolicy
+          TiIdentityModule *strongSelf = weakSelf;
+          if (strongSelf == nil) { return; }
+
+          [[strongSelf authContext] evaluatePolicy:strongSelf->_authPolicy
                              localizedReason:reason
                                        reply:^(BOOL success, NSError *error) {
                                          NSMutableDictionary *event = [NSMutableDictionary dictionary];
@@ -171,7 +179,7 @@
                                          [self fireCallback:@"callback" withArg:event withSource:self];
 
                                          if (!keepAlive) {
-                                           _authContext = nil;
+                                           strongSelf->_authContext = nil;
                                          }
                                        }];
         },
