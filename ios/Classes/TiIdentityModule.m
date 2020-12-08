@@ -67,7 +67,7 @@
 - (NSNumber *)biometryType
 {
   if ([TiUtils isIOSVersionOrGreater:@"11.0"]) {
-    return NUMINT([[self authContext] biometryType]);
+    return @([[self authContext] biometryType]);
   } else {
     NSLog(@"[ERROR] Ti.Identity.biometryType is only available on iOS 11 and later!");
     return NUMINT(-1);
@@ -81,15 +81,17 @@
 
 - (NSNumber *)isSupported:(id)unused
 {
-  if (![TiUtils isIOS8OrGreater]) {
-    return NUMBOOL(NO);
-  }
-
   __block BOOL isSupported = NO;
+  __weak TiIdentityModule *weakSelf = self;
 
   TiThreadPerformOnMainThread(
       ^{
-        isSupported = [[self authContext] canEvaluatePolicy:_authPolicy error:nil];
+        TiIdentityModule *strongSelf = weakSelf;
+        if (strongSelf == nil) {
+          return;
+        }
+
+        isSupported = [[strongSelf authContext] canEvaluatePolicy:strongSelf->_authPolicy error:nil];
       },
       YES);
 
@@ -108,6 +110,7 @@
   id fallbackTitle = [args valueForKey:@"fallbackTitle"];
   id cancelTitle = [args valueForKey:@"cancelTitle"];
   BOOL keepAlive = [TiUtils boolValue:@"keepAlive" properties:args def:YES];
+  __weak TiIdentityModule *weakSelf = self;
 
   if (![callback isKindOfClass:[KrollCallback class]]) {
     NSLog(@"[WARN] Ti.Identity: The parameter `callback` in `authenticate` must be a function.");
@@ -132,15 +135,13 @@
     return;
   }
 
-  // iOS 9: Expose failure behavior
-  if ([TiUtils isIOS9OrGreater]) {
-    if (allowableReuseDuration) {
-      [[self authContext] setTouchIDAuthenticationAllowableReuseDuration:[TiUtils doubleValue:allowableReuseDuration]];
-    }
+  // Expose failure behavior
+  if (allowableReuseDuration) {
+    [[self authContext] setTouchIDAuthenticationAllowableReuseDuration:[TiUtils doubleValue:allowableReuseDuration]];
   }
 
   // iOS 10: Expose support for localized titles
-  if ([TiUtils isIOS10OrGreater]) {
+  if ([TiUtils isIOSVersionOrGreater:@"10.0"]) {
     if (fallbackTitle) {
       [[self authContext] setLocalizedFallbackTitle:[TiUtils stringValue:fallbackTitle]];
     }
@@ -154,26 +155,31 @@
   if ([[self authContext] canEvaluatePolicy:_authPolicy error:&authError]) {
     TiThreadPerformOnMainThread(
         ^{
-          [[self authContext] evaluatePolicy:_authPolicy
-                             localizedReason:reason
-                                       reply:^(BOOL success, NSError *error) {
-                                         NSMutableDictionary *event = [NSMutableDictionary dictionary];
+          TiIdentityModule *strongSelf = weakSelf;
+          if (strongSelf == nil) {
+            return;
+          }
 
-                                         if (error != nil) {
-                                           [event setValue:[error localizedDescription] forKey:@"error"];
-                                           [event setValue:NUMINTEGER([error code]) forKey:@"code"];
-                                         }
+          [[strongSelf authContext] evaluatePolicy:strongSelf->_authPolicy
+                                   localizedReason:reason
+                                             reply:^(BOOL success, NSError *error) {
+                                               NSMutableDictionary *event = [NSMutableDictionary dictionary];
 
-                                         [event setValue:NUMBOOL(success) forKey:@"success"];
+                                               if (error != nil) {
+                                                 [event setValue:[error localizedDescription] forKey:@"error"];
+                                                 [event setValue:NUMINTEGER([error code]) forKey:@"code"];
+                                               }
 
-                                         // TIMOB-24489: Use this callback invocation to prevent issues with Kroll-Thread
-                                         // and proxies that open another thread (e.g. Ti.Network)
-                                         [self fireCallback:@"callback" withArg:event withSource:self];
+                                               [event setValue:NUMBOOL(success) forKey:@"success"];
 
-                                         if (!keepAlive) {
-                                           _authContext = nil;
-                                         }
-                                       }];
+                                               // TIMOB-24489: Use this callback invocation to prevent issues with Kroll-Thread
+                                               // and proxies that open another thread (e.g. Ti.Network)
+                                               [self fireCallback:@"callback" withArg:event withSource:self];
+
+                                               if (!keepAlive) {
+                                                 strongSelf->_authContext = nil;
+                                               }
+                                             }];
         },
         NO);
 
@@ -205,23 +211,12 @@
     return;
   }
 
-  if ([TiUtils isIOS9OrGreater]) {
-    [_authContext invalidate];
-  }
-
+  [_authContext invalidate];
   _authContext = nil;
 }
 
 - (NSDictionary *)deviceCanAuthenticate:(id)unused
 {
-  if (![TiUtils isIOS8OrGreater]) {
-    return @{
-      @"error" : @"The method `deviceCanAuthenticate` is only available in iOS 8 and later.",
-      @"code" : [self ERROR_TOUCH_ID_NOT_AVAILABLE],
-      @"canAuthenticate" : NUMBOOL(NO)
-    };
-  }
-
   NSError *authError = nil;
   BOOL canAuthenticate = [[self authContext] canEvaluatePolicy:_authPolicy error:&authError];
   NSMutableDictionary *result = [NSMutableDictionary dictionaryWithDictionary:@{
@@ -274,7 +269,7 @@ MAKE_SYSTEM_PROP(ACCESS_CONTROL_DEVICE_PASSCODE, 16); // kSecAccessControlDevice
 MAKE_SYSTEM_PROP(ACCESS_CONTROL_OR, 16384); // kSecAccessControlOr
 MAKE_SYSTEM_PROP(ACCESS_CONTROL_AND, 32768); // kSecAccessControlAnd
 MAKE_SYSTEM_PROP(ACCESS_CONTROL_PRIVATE_KEY_USAGE, 1073741824); // kSecAccessControlPrivateKeyUsage
-MAKE_SYSTEM_PROP(ACCESS_CONTROL_APPLICATION_PASSWORD, 2147483648); // kSecAccessControlApplicationPassword
+MAKE_SYSTEM_PROP(ACCESS_CONTROL_APPLICATION_PASSWORD, -2147483648); // kSecAccessControlApplicationPassword
 
 MAKE_SYSTEM_PROP(AUTHENTICATION_POLICY_BIOMETRICS, LAPolicyDeviceOwnerAuthenticationWithBiometrics);
 MAKE_SYSTEM_PROP(AUTHENTICATION_POLICY_PASSCODE, LAPolicyDeviceOwnerAuthentication);
