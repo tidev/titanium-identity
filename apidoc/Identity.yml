@@ -296,16 +296,22 @@ properties:
     type: Number
     permission: read-only
     platforms: [iphone, ipad]
+    deprecated:
+        since: "10.0.0"
+        notes: Use <Modules.Identity.ERROR_BIOMETRY_NOT_AVAILABLE> instead.
 
   - name: ERROR_TOUCH_ID_NOT_ENROLLED
     summary: |
         Constant indicating that Touch ID does not have any enrolled fingerprints.
         Note: This constant has been deprecated for iOS 11 and later. Use
-        <Modules.Identity.ERROR_TOUCH_ID_NOT_ENROLLED for apps targeting iOS 11
+        <Modules.Identity.ERROR_BIOMETRY_NOT_ENROLLED for apps targeting iOS 11
         and later.
     type: Number
     permission: read-only
     platforms: [iphone, ipad]
+    deprecated:
+        since: "10.0.0"
+        notes: Use <Modules.Identity.ERROR_BIOMETRY_NOT_ENROLLED> instead.
 
   - name: ERROR_SYSTEM_CANCEL
     summary: |
@@ -348,6 +354,9 @@ properties:
     type: Number
     permission: read-only
     platforms: [iphone, ipad, android]
+    deprecated:
+        since: "10.0.0"
+        notes: This constant has deprecated in iOS. Use <Modules.Identity.ERROR_BIOMETRY_LOCKOUT> instead.
 
   - name: ERROR_BIOMETRY_LOCKOUT
     summary: |
