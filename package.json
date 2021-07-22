@@ -1,6 +1,6 @@
 {
 	"name": "@titanium-sdk/ti.identity",
-	"version": "6.0.0",
+	"version": "6.0.1",
 	"description": "A collection of API's to authenticate with your device: Keychain/Keystore, Touch ID and Face ID (iOS only)",
 	"scripts": {
 		"commit": "git-cz",
