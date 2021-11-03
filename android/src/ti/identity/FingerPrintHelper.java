@@ -15,17 +15,9 @@ import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyPermanentlyInvalidatedException;
 import android.security.keystore.KeyProperties;
 import android.util.Base64;
-
 import androidx.biometric.BiometricManager;
 import androidx.biometric.BiometricPrompt;
 import androidx.fragment.app.FragmentActivity;
-
-import org.appcelerator.kroll.KrollDict;
-import org.appcelerator.kroll.KrollFunction;
-import org.appcelerator.kroll.KrollObject;
-import org.appcelerator.kroll.common.Log;
-import org.appcelerator.titanium.TiApplication;
-
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.util.HashMap;
@@ -33,10 +25,14 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
+import org.appcelerator.kroll.KrollDict;
+import org.appcelerator.kroll.KrollFunction;
+import org.appcelerator.kroll.KrollObject;
+import org.appcelerator.kroll.common.Log;
+import org.appcelerator.titanium.TiApplication;
 
 public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 {
@@ -91,7 +87,10 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 	private boolean canUseDeviceBiometrics()
 	{
 		if ((Build.VERSION.SDK_INT >= 23) && (mBiometricManager != null)) {
-			return mBiometricManager.canAuthenticate(BiometricManager.Authenticators.DEVICE_CREDENTIAL | BiometricManager.Authenticators.BIOMETRIC_STRONG | BiometricManager.Authenticators.BIOMETRIC_WEAK) == BiometricManager.BIOMETRIC_SUCCESS;
+			return mBiometricManager.canAuthenticate(BiometricManager.Authenticators.DEVICE_CREDENTIAL
+													 | BiometricManager.Authenticators.BIOMETRIC_STRONG
+													 | BiometricManager.Authenticators.BIOMETRIC_WEAK)
+				== BiometricManager.BIOMETRIC_SUCCESS;
 		}
 		return false;
 	}
@@ -275,7 +274,9 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 		String error = "";
 		KrollDict response = new KrollDict();
 
-		int canAuthenticate = mBiometricManager.canAuthenticate(BiometricManager.Authenticators.DEVICE_CREDENTIAL |BiometricManager.Authenticators.BIOMETRIC_STRONG | BiometricManager.Authenticators.BIOMETRIC_WEAK);
+		int canAuthenticate = mBiometricManager.canAuthenticate(BiometricManager.Authenticators.DEVICE_CREDENTIAL
+																| BiometricManager.Authenticators.BIOMETRIC_STRONG
+																| BiometricManager.Authenticators.BIOMETRIC_WEAK);
 		boolean hardwareDetected = canAuthenticate != BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE
 								   && canAuthenticate != BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE;
 		boolean hasFingerprints = canAuthenticate != BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED;
@@ -327,10 +328,13 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 			Executor executor = Executors.newSingleThreadExecutor();
 			BiometricPrompt biometricPrompt =
 				new BiometricPrompt((FragmentActivity) TiApplication.getAppCurrentActivity(), executor, this);
-			BiometricPrompt.PromptInfo promptInfo = new BiometricPrompt.PromptInfo.Builder()
-														.setTitle("Enter your device credentials")
-														.setAllowedAuthenticators(BiometricManager.Authenticators.DEVICE_CREDENTIAL |BiometricManager.Authenticators.BIOMETRIC_STRONG | BiometricManager.Authenticators.BIOMETRIC_WEAK)
-														.build();
+			BiometricPrompt.PromptInfo promptInfo =
+				new BiometricPrompt.PromptInfo.Builder()
+					.setTitle("Enter your device credentials")
+					.setAllowedAuthenticators(BiometricManager.Authenticators.DEVICE_CREDENTIAL
+											  | BiometricManager.Authenticators.BIOMETRIC_STRONG
+											  | BiometricManager.Authenticators.BIOMETRIC_WEAK)
+					.build();
 			biometricPrompt.authenticate(promptInfo);
 		} else if (response.containsKey("error")) {
 			onError(response.getString("error"));
