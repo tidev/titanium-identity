@@ -23,7 +23,6 @@ import java.security.KeyStoreException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import javax.crypto.Cipher;
@@ -88,9 +87,10 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 	private boolean canUseDeviceBiometrics()
 	{
 		if ((Build.VERSION.SDK_INT >= 23) && (mBiometricManager != null)) {
-			if (mBiometricManager.canAuthenticate() == BiometricManager.BIOMETRIC_SUCCESS) {
-				return true;
-			}
+			return mBiometricManager.canAuthenticate(BiometricManager.Authenticators.DEVICE_CREDENTIAL
+													 | BiometricManager.Authenticators.BIOMETRIC_STRONG
+													 | BiometricManager.Authenticators.BIOMETRIC_WEAK)
+				== BiometricManager.BIOMETRIC_SUCCESS;
 		}
 		return false;
 	}
@@ -276,7 +276,9 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 		String error = "";
 		KrollDict response = new KrollDict();
 
-		int canAuthenticate = mBiometricManager.canAuthenticate();
+		int canAuthenticate = mBiometricManager.canAuthenticate(BiometricManager.Authenticators.DEVICE_CREDENTIAL
+																| BiometricManager.Authenticators.BIOMETRIC_STRONG
+																| BiometricManager.Authenticators.BIOMETRIC_WEAK);
 		boolean hardwareDetected = canAuthenticate != BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE
 								   && canAuthenticate != BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE;
 		boolean hasFingerprints = canAuthenticate != BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED;
@@ -328,10 +330,13 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 			Executor executor = Executors.newSingleThreadExecutor();
 			BiometricPrompt biometricPrompt =
 				new BiometricPrompt((FragmentActivity) TiApplication.getAppCurrentActivity(), executor, this);
-			BiometricPrompt.PromptInfo promptInfo = new BiometricPrompt.PromptInfo.Builder()
-														.setTitle("Enter your device credentials")
-														.setDeviceCredentialAllowed(true)
-														.build();
+			BiometricPrompt.PromptInfo promptInfo =
+				new BiometricPrompt.PromptInfo.Builder()
+					.setTitle("Enter your device credentials")
+					.setAllowedAuthenticators(BiometricManager.Authenticators.DEVICE_CREDENTIAL
+											  | BiometricManager.Authenticators.BIOMETRIC_STRONG
+											  | BiometricManager.Authenticators.BIOMETRIC_WEAK)
+					.build();
 			biometricPrompt.authenticate(promptInfo);
 		} else if (response.containsKey("error")) {
 			onError(response.getString("error"));
