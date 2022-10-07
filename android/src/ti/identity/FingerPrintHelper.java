@@ -150,7 +150,9 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 			final Executor executor = Executors.newSingleThreadExecutor();
 			final BiometricPrompt prompt =
 				new BiometricPrompt((FragmentActivity) TiApplication.getAppCurrentActivity(), executor, this);
-			prompt.authenticate(promptInfo.build(), mCryptoObject);
+			if (mCryptoObject != null) {
+				prompt.authenticate(promptInfo.build(), mCryptoObject);
+			}
 		} else if (canUseDeviceCredentials()) {
 			this.callback = callback;
 			this.krollObject = obj;
