@@ -66,6 +66,12 @@ jobs:
     - name: Install ccache
       run: brew install ccache
 
+    - name: Setup Java
+      uses: actions/setup-java@v2
+      with:
+        distribution: 'adopt'
+        java-version: '11'
+
     - name: Retrieve ccache
       uses: actions/cache@v2
       with:
