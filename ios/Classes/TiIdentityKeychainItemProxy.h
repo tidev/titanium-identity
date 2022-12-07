@@ -46,7 +46,7 @@
 
 /**
  Checks if an item exists already.
- 
+
  @param value The callback to be invoked after the existence is determined.
  */
 - (void)fetchExistence:(id)value;
