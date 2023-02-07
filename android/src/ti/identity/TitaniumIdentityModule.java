@@ -7,6 +7,7 @@
 package ti.identity;
 
 import android.app.Activity;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import java.lang.Override;
 import java.util.HashMap;
@@ -16,6 +17,7 @@ import org.appcelerator.kroll.KrollModule;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
+import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.util.TiConvert;
 
 @Kroll.module(name = "Identity", id = "ti.identity")
@@ -95,6 +97,8 @@ public class TitaniumIdentityModule extends KrollModule
 	public static String reasonSubtitle = "";
 	public static String reasonText = "";
 	public static String negativeButtonText = "Cancel";
+
+	PackageManager pm;
 
 	public TitaniumIdentityModule()
 	{
@@ -199,6 +203,41 @@ public class TitaniumIdentityModule extends KrollModule
 		}
 		if (Build.VERSION.SDK_INT >= 23 && mfingerprintHelper != null) {
 			return mfingerprintHelper.isDeviceSupported();
+		}
+		return false;
+	}
+
+	@Kroll.getProperty
+	public boolean hasFingerprintScanner()
+	{
+		if (pm == null) {
+			pm = TiApplication.getAppCurrentActivity().getPackageManager();
+		}
+		if (pm.hasSystemFeature(PackageManager.FEATURE_FINGERPRINT)) {
+			return true;
+		}
+		return false;
+	}
+	@Kroll.getProperty
+	public boolean hasFaceScanner()
+	{
+		if (pm == null) {
+			pm = TiApplication.getAppCurrentActivity().getPackageManager();
+		}
+		if (pm.hasSystemFeature(PackageManager.FEATURE_FACE)) {
+			return true;
+		}
+		return false;
+	}
+
+	@Kroll.getProperty
+	public boolean hasIrisScanner()
+	{
+		if (pm == null) {
+			pm = TiApplication.getAppCurrentActivity().getPackageManager();
+		}
+		if (Build.VERSION.SDK_INT >= 29 && pm.hasSystemFeature(PackageManager.FEATURE_IRIS)) {
+			return true;
 		}
 		return false;
 	}
