@@ -1,5 +1,5 @@
 name: JavaScript Lint
-on: 
+on:
   push:
     paths:
     - '**.js'
@@ -11,7 +11,7 @@ on:
     - '**.json'
     - '**.eslint*'
   workflow_dispatch:
-  
+
 jobs:
   js:
     runs-on: ubuntu-latest

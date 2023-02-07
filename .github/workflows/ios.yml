@@ -1,5 +1,5 @@
 name: iOS Build
-on: 
+on:
   push:
     paths-ignore:
     - 'android/**'
@@ -9,7 +9,7 @@ on:
     - 'android/**'
     - 'apidoc/**'
   workflow_dispatch:
-  
+
 jobs:
   ios:
     runs-on: macos-latest

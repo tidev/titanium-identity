@@ -3,6 +3,7 @@
 	<android xmlns:android="http://schemas.android.com/apk/res/android">
         <manifest>
            <uses-permission android:name="android.permission.USE_FINGERPRINT"/>
+           <uses-permission android:name="android.permission.USE_BIOMETRIC"/>
         </manifest>
 	</android>
 </ti:module>
