@@ -94,7 +94,7 @@ jobs:
 # TODO: Grab the version so zip file name can contain it
 
     - name: Archive Android zip
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: ti.identity-android
         path: |
