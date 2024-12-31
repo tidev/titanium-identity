@@ -147,6 +147,7 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 				promptInfo.setDescription(TitaniumIdentityModule.reasonText);
 				promptInfo.setSubtitle(TitaniumIdentityModule.reasonSubtitle);
 				promptInfo.setNegativeButtonText(TitaniumIdentityModule.negativeButtonText);
+				promptInfo.setConfirmationRequired(TitaniumIdentityModule.confirmationRequired);
 
 				final Executor executor = Executors.newSingleThreadExecutor();
 				final BiometricPrompt prompt =

@@ -31,6 +31,7 @@ public class TitaniumIdentityModule extends KrollModule
 	public static final String PROPERTY_REASON_SUBTITLE = "reasonSubtitle";
 	public static final String PROPERTY_REASON_TEXT = "reasonText";
 	public static final String PROPERTY_CANCEL_TITLE = "cancelTitle";
+	public static final String PROPERTY_CONFIRMATION = "confirmationRequired";
 
 	@Kroll.constant
 	public static final int SUCCESS = 0;
@@ -97,6 +98,7 @@ public class TitaniumIdentityModule extends KrollModule
 	public static String reasonSubtitle = "";
 	public static String reasonText = "";
 	public static String negativeButtonText = "Cancel";
+	public static boolean confirmationRequired = true;
 
 	PackageManager pm;
 
@@ -161,6 +163,9 @@ public class TitaniumIdentityModule extends KrollModule
 		}
 		if (params.containsKey(PROPERTY_CANCEL_TITLE)) {
 			negativeButtonText = TiConvert.toString(params.get(PROPERTY_CANCEL_TITLE), negativeButtonText);
+		}
+		if (params.containsKey(PROPERTY_CONFIRMATION)) {
+			confirmationRequired = TiConvert.toBoolean(params.get(PROPERTY_CONFIRMATION), confirmationRequired);
 		}
 
 		if (params.containsKey("callback")) {

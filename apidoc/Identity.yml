@@ -628,6 +628,16 @@ properties:
     platforms: [android, iphone, ipad]
     osver: {ios: {min: "10.0"}}
 
+  - name: confirmationRequired
+    summary: |
+        Sets a hint to the system for whether to require user confirmation after
+        authentication. For example, implicit modalities like face and iris are passive,
+        meaning they don't require an explicit user action to complete authentication.
+        See https://developer.android.com/reference/android/hardware/biometrics/BiometricPrompt.Builder#setConfirmationRequired(boolean)
+    type: String
+    since: "12.7.0"
+    platforms: [android]
+
   - name: keepAlive
     summary: |
         Note: This property is iOS only!
