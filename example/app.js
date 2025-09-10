@@ -59,6 +59,7 @@ btn.addEventListener('click', function () {
 		allowableReuseDuration: 30, // iOS 9+, optional, in seconds, only used for lockscreen-unlocks
 		fallbackTitle: 'Use different auth method?', // iOS 10+, optional
 		cancelTitle: 'Get me outta here!', // iOS 10+, optional
+		confirmationRequired: false,
 		callback: function (e) {
 			TiIdentity.invalidate();
 			if (!e.success) {

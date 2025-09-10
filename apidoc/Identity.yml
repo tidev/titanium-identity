@@ -107,11 +107,11 @@ methods:
     description: |
       A special note for Android:
 
-      When you call this method in Android, it will either authenticate the fingerprint or it will fallback 
-      to the device's password, pin or pattern which is the case when biometric means of identification is 
+      When you call this method in Android, it will either authenticate the fingerprint or it will fallback
+      to the device's password, pin or pattern which is the case when biometric means of identification is
       not available. If you provide an incorrect fingerprint and receive an error message "Unable to recognize
-      fingerprint", do not call authenticate. Instead, get the user to try again. If you call authenticate, 
-      it will end up in a bad state. This flow will be improved in the next update for Android. 
+      fingerprint", do not call authenticate. Instead, get the user to try again. If you call authenticate,
+      it will end up in a bad state. This flow will be improved in the next update for Android.
     parameters:
       - name: params
         summary: Dictionary of arguments passed to the method, e.g. the reason to autheicate and the callback.
@@ -152,7 +152,7 @@ methods:
 
   - name: isSupported
     summary: Determines if the current device supports Touch ID or Face ID.
-    description: | 
+    description: |
         This module is only supported on Android 6.0 or newer. So, this method always returns
         `false` on older versions of Android.
 
@@ -227,6 +227,24 @@ properties:
     permission: read-only
     platforms: [iphone, ipad, android]
     since: "6.1.0"
+
+  - name: hasFaceScanner
+    summary: Returns true if the has biometric hardware to perform face authentication
+    type: Boolean
+    platforms: [android]
+    since: "12.1.0"
+
+  - name: hasIrisScanner
+    summary: Returns true if the device has biometric hardware to perform iris authentication.
+    type: Boolean
+    platforms: [android]
+    since: "12.1.0"
+
+  - name: hasFingerprintScanner
+    summary: Returns true if the device has biometric hardware to detect a fingerprint.
+    type: Boolean
+    platforms: [android]
+    since: "12.1.0"
 
   - name: AUTHENTICATION_POLICY_BIOMETRICS_OR_WATCH
     summary: Device owner was authenticated using a biometric method or the Apple Watch.
@@ -609,6 +627,16 @@ properties:
     since: "6.1.0"
     platforms: [android, iphone, ipad]
     osver: {ios: {min: "10.0"}}
+
+  - name: confirmationRequired
+    summary: |
+        Sets a hint to the system for whether to require user confirmation after
+        authentication. For example, implicit modalities like face and iris are passive,
+        meaning they don't require an explicit user action to complete authentication.
+        See https://developer.android.com/reference/android/hardware/biometrics/BiometricPrompt.Builder#setConfirmationRequired(boolean)
+    type: String
+    since: "12.7.0"
+    platforms: [android]
 
   - name: keepAlive
     summary: |
