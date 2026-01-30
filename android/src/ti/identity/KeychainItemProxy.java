@@ -120,46 +120,45 @@ public class KeychainItemProxy extends KrollProxy
 			context = TiApplication.getAppRootOrCurrentActivity();
 
 			// fingerprint authentication
-            keyguardManager = context.getSystemService(KeyguardManager.class);
-            biometricManager = BiometricManager.from(context);
-            authenticationCallback = new AuthenticationCallback() {
-                @Override
-                public void onAuthenticationError(int errorCode, CharSequence errString)
-                {
-                    switch (errorCode) {
-                        case BiometricPrompt.ERROR_USER_CANCELED:
-                        case BiometricPrompt.ERROR_CANCELED:
-                        case BiometricPrompt.ERROR_NEGATIVE_BUTTON:
-                            doEvents(TitaniumIdentityModule.ERROR_AUTHENTICATION_FAILED, errString.toString());
-                            break;
-                        default:
-                            doEvents(errorCode, errString.toString());
-                    }
-                }
+			keyguardManager = context.getSystemService(KeyguardManager.class);
+			biometricManager = BiometricManager.from(context);
+			authenticationCallback = new AuthenticationCallback() {
+				@Override
+				public void onAuthenticationError(int errorCode, CharSequence errString)
+				{
+					switch (errorCode) {
+						case BiometricPrompt.ERROR_USER_CANCELED:
+						case BiometricPrompt.ERROR_CANCELED:
+						case BiometricPrompt.ERROR_NEGATIVE_BUTTON:
+							doEvents(TitaniumIdentityModule.ERROR_AUTHENTICATION_FAILED, errString.toString());
+							break;
+						default:
+							doEvents(errorCode, errString.toString());
+					}
+				}
 
-                @Override
-                public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result)
-                {
-                    doEvents(0, null);
-                }
+				@Override
+				public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result)
+				{
+					doEvents(0, null);
+				}
 
-                @Override
-                public void onAuthenticationFailed()
-                {
-                    doEvents(TitaniumIdentityModule.ERROR_AUTHENTICATION_FAILED,
-                             "failed to authenticate fingerprint!");
-                }
-            };
+				@Override
+				public void onAuthenticationFailed()
+				{
+					doEvents(TitaniumIdentityModule.ERROR_AUTHENTICATION_FAILED, "failed to authenticate fingerprint!");
+				}
+			};
 
-            final BiometricPrompt.PromptInfo.Builder promptInfo = new BiometricPrompt.PromptInfo.Builder();
-            promptInfo.setTitle(TitaniumIdentityModule.reason);
-            promptInfo.setSubtitle(TitaniumIdentityModule.reasonSubtitle);
-            promptInfo.setDescription(TitaniumIdentityModule.reasonText);
-            promptInfo.setNegativeButtonText(TitaniumIdentityModule.negativeButtonText);
-            promptInfo.setConfirmationRequired(TitaniumIdentityModule.confirmationRequired);
-            biometricPromptInfo = promptInfo.build();
+			final BiometricPrompt.PromptInfo.Builder promptInfo = new BiometricPrompt.PromptInfo.Builder();
+			promptInfo.setTitle(TitaniumIdentityModule.reason);
+			promptInfo.setSubtitle(TitaniumIdentityModule.reasonSubtitle);
+			promptInfo.setDescription(TitaniumIdentityModule.reasonText);
+			promptInfo.setNegativeButtonText(TitaniumIdentityModule.negativeButtonText);
+			promptInfo.setConfirmationRequired(TitaniumIdentityModule.confirmationRequired);
+			biometricPromptInfo = promptInfo.build();
 
-            // load Android key store
+			// load Android key store
 			keyStore = KeyStore.getInstance("AndroidKeyStore");
 			keyStore.load(null);
 

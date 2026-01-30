@@ -124,14 +124,14 @@ public class TitaniumIdentityModule extends KrollModule
 
 	private void init()
 	{
-        try {
-            mfingerprintHelper = new FingerPrintHelper(this);
-        } catch (Exception e) {
-            mfingerprintHelper = null;
-            fingerprintHelperException = e.getCause();
-            Log.e(TAG, fingerprintHelperException.getMessage());
-        }
-    }
+		try {
+			mfingerprintHelper = new FingerPrintHelper(this);
+		} catch (Exception e) {
+			mfingerprintHelper = null;
+			fingerprintHelperException = e.getCause();
+			Log.e(TAG, fingerprintHelperException.getMessage());
+		}
+	}
 
 	@Override
 	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy)
@@ -187,11 +187,11 @@ public class TitaniumIdentityModule extends KrollModule
 		KrollDict response = new KrollDict();
 		response.put("canAuthenticate", false);
 		response.put("code", TitaniumIdentityModule.ERROR_TOUCH_ID_NOT_AVAILABLE);
-        if (fingerprintHelperException != null) {
-            response.put("error", fingerprintHelperException.getMessage());
-        } else {
-            response.put("error", "Device does not support fingerprint authentication");
-        }
+		if (fingerprintHelperException != null) {
+			response.put("error", fingerprintHelperException.getMessage());
+		} else {
+			response.put("error", "Device does not support fingerprint authentication");
+		}
 
 		return response;
 	}

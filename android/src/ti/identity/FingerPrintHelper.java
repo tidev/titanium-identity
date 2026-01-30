@@ -132,10 +132,12 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 			try {
 				initCipher();
 				mCryptoObject = new BiometricPrompt.CryptoObject(mCipher);
-			} catch (Exception e) {}
-            if (mCryptoObject != null) {
+			} catch (Exception e) {
+			}
+			if (mCryptoObject != null) {
 				return true;
-			} else return canUseDeviceCredentials();
+			} else
+				return canUseDeviceCredentials();
 		}
 		return false;
 	}
