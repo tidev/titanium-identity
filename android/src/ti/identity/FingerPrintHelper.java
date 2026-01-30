@@ -126,6 +126,20 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 		}
 	}
 
+	public boolean isEnabled()
+	{
+		if (canUseDeviceBiometrics()) {
+			try {
+				initCipher();
+				mCryptoObject = new BiometricPrompt.CryptoObject(mCipher);
+			} catch (Exception e) {}
+            if (mCryptoObject != null) {
+				return true;
+			} else return canUseDeviceCredentials();
+		}
+		return false;
+	}
+
 	@SuppressLint("MissingPermission,NewApi")
 	public void startListening(KrollFunction callback, KrollObject obj)
 	{
@@ -155,6 +169,9 @@ public class FingerPrintHelper extends BiometricPrompt.AuthenticationCallback
 				prompt.authenticate(promptInfo.build(), mCryptoObject);
 			} else if (canUseDeviceCredentials()) {
 				startDeviceCredentials();
+			} else {
+				// fire error
+				onError("Failed to init Cipher");
 			}
 		} else if (canUseDeviceCredentials()) {
 			this.callback = callback;

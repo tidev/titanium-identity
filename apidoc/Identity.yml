@@ -159,6 +159,15 @@ methods:
     returns:
         type: Boolean
 
+  - name: isEnabled
+    summary: Determines if the current state of the biometric authentication.
+    description: |
+        Will return `false` if the device has biometrics but they are disabled
+    platforms: [android]
+    since: "13.1.1"
+    returns:
+        type: Boolean
+
 properties:
   - name: authenticationPolicy
     summary: Sets the global authentication policy used in this Touch ID / Face ID context.
