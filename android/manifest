@@ -15,4 +15,4 @@ name: titanium-identity
 moduleid: ti.identity
 guid: ae6ffc93-6e6e-4251-8373-b0cb263a1662
 platform: android
-minsdk: 9.0.0
+minsdk: 12.8.0
