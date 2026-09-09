@@ -48,6 +48,11 @@ var btn = Ti.UI.createButton({
 win.add(btn);
 win.open();
 
+win.addEventListener('open', function () {
+	console.log('is supported: ' + TiIdentity.isSupported());
+	console.log('is enabled: ' + TiIdentity.isEnabled());
+});
+
 btn.addEventListener('click', function () {
 	if (!supported) {
 		alert('Authentication is not supported on this device!'); // eslint-disable-line no-alert

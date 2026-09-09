@@ -124,14 +124,12 @@ public class TitaniumIdentityModule extends KrollModule
 
 	private void init()
 	{
-		if (Build.VERSION.SDK_INT >= 23) {
-			try {
-				mfingerprintHelper = new FingerPrintHelper(this);
-			} catch (Exception e) {
-				mfingerprintHelper = null;
-				fingerprintHelperException = e.getCause();
-				Log.e(TAG, fingerprintHelperException.getMessage());
-			}
+		try {
+			mfingerprintHelper = new FingerPrintHelper(this);
+		} catch (Exception e) {
+			mfingerprintHelper = null;
+			fingerprintHelperException = e.getCause();
+			Log.e(TAG, fingerprintHelperException.getMessage());
 		}
 	}
 
@@ -182,16 +180,14 @@ public class TitaniumIdentityModule extends KrollModule
 		if (mfingerprintHelper == null) {
 			init();
 		}
-		if (Build.VERSION.SDK_INT >= 23 && mfingerprintHelper != null) {
+		if (mfingerprintHelper != null) {
 			return mfingerprintHelper.deviceCanAuthenticate(authenticationPolicy);
 		}
 
 		KrollDict response = new KrollDict();
 		response.put("canAuthenticate", false);
 		response.put("code", TitaniumIdentityModule.ERROR_TOUCH_ID_NOT_AVAILABLE);
-		if (Build.VERSION.SDK_INT < 23) {
-			response.put("error", "Device is running with API < 23");
-		} else if (fingerprintHelperException != null) {
+		if (fingerprintHelperException != null) {
 			response.put("error", fingerprintHelperException.getMessage());
 		} else {
 			response.put("error", "Device does not support fingerprint authentication");
@@ -206,8 +202,20 @@ public class TitaniumIdentityModule extends KrollModule
 		if (mfingerprintHelper == null) {
 			init();
 		}
-		if (Build.VERSION.SDK_INT >= 23 && mfingerprintHelper != null) {
+		if (mfingerprintHelper != null) {
 			return mfingerprintHelper.isDeviceSupported();
+		}
+		return false;
+	}
+
+	@Kroll.method
+	public boolean isEnabled()
+	{
+		if (mfingerprintHelper == null) {
+			init();
+		}
+		if (mfingerprintHelper != null) {
+			return mfingerprintHelper.isEnabled();
 		}
 		return false;
 	}
