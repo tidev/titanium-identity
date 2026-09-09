@@ -15,26 +15,16 @@ jobs:
     runs-on: macos-latest
     name: iOS
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
 
     - name: Use Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v7
       with:
-        node-version: '20.x'
-
-    - name: Cache Node.js modules
-      id: node-cache
-      uses: actions/cache@v4
-      with:
-        path: node_modules
-        key: ${{ runner.OS }}-node-modules-${{ hashFiles('package-lock.json') }}
-        restore-keys: |
-          ${{ runner.OS }}-node-modules-
-          ${{ runner.OS }}-
+        node-version: '24'
+        cache: npm
 
     - run: npm ci
       name: Install dependencies
-      if: steps.node-cache.outputs.cache-hit != 'true'
 
     - run: npm run lint:ios
       name: Lint
@@ -42,20 +32,31 @@ jobs:
     - run: npm i -g titanium
       name: Install Titanium CLI
 
-# TODO cache SDK install
+    # ios/titanium.xcconfig is the single source of truth for the SDK the
+    # module is built against, so the workflow reads it instead of pinning
+    # a second copy of the version here.
+    - name: Read Titanium SDK version
+      id: sdk
+      run: echo "version=$(sed -n 's/^TITANIUM_SDK_VERSION = //p' ios/titanium.xcconfig)" >> "$GITHUB_OUTPUT"
 
-    - run: ti sdk install 12.5.1.GA --force
-      name: Install Ti SDK
+    - name: Cache Titanium SDK
+      id: sdk-cache
+      uses: actions/cache@v6
+      with:
+        path: ~/Library/Application Support/Titanium/mobilesdk/osx/${{ steps.sdk.outputs.version }}
+        key: ${{ runner.os }}-tisdk-${{ steps.sdk.outputs.version }}
 
-    - run: sed -i .bak 's/TITANIUM_SDK_VERSION = .*/TITANIUM_SDK_VERSION = 12.5.1.GA/' ios/titanium.xcconfig
-      name: Set to Build with 12.5.1.GA SDK
+    - run: ti sdk install ${{ steps.sdk.outputs.version }}
+      name: Install Titanium SDK
+      if: steps.sdk-cache.outputs.cache-hit != 'true'
 
-    # - run: npm run test:ios -- --sdkVersion 12.5.1.GA
-    #   name: Build and Test
+    - run: ti build -p ios -b --sdk ${{ steps.sdk.outputs.version }}
+      name: Build
+      working-directory: ios
 
     - name: Archive iOS artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ti.identity-ios
-        path: |
-          ios/dist/ti.identity-iphone-*.zip
+        path: ios/dist/ti.identity-iphone-*.zip
+        if-no-files-found: error
