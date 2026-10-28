@@ -2,7 +2,7 @@
 # this is your module manifest and used by Titanium
 # during compilation, packaging, distribution, etc.
 #
-version: 5.0.0
+version: 6.0.0
 apiversion: 2
 architectures: arm64 x86_64
 description: titanium-identity
@@ -16,4 +16,4 @@ moduleid: ti.identity
 guid: ae6ffc93-6e6e-4251-8373-b0cb263a1662
 platform: iphone
 mac: true
-minsdk: 10.0.0
+minsdk: 13.4.0
